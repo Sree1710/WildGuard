@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { 
+import {
   FaPaw, FaCamera, FaBell, FaChartLine, FaShieldAlt, FaLeaf,
   FaArrowRight, FaCheck, FaUsers, FaDatabase, FaSync
 } from 'react-icons/fa';
@@ -26,24 +26,44 @@ const HomePage = () => {
         </LoginButton>
       </Header>
 
-      {/* Hero Section */}
-      <HeroSection>
-        <HeroContent>
-          <HeroTitle>Intelligent Wildlife Monitoring & Anti-Poaching System</HeroTitle>
-          <HeroSubtitle>
-            Advanced AI-powered conservation technology protecting endangered species and forests
-          </HeroSubtitle>
-          <HeroButtons>
-            <PrimaryButton onClick={() => navigate('/login')}>
-              Get Started <FaArrowRight />
-            </PrimaryButton>
-            <SecondaryButton onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
-              Learn More
-            </SecondaryButton>
-          </HeroButtons>
-        </HeroContent>
-        <HeroImage>🦁🐘🐯</HeroImage>
-      </HeroSection>
+      {/* Hero Section (Wildlife Template Style) */}
+      <HeroWrapper>
+        <HeroOverlay />
+
+        <HeroTopBar>
+          <HeroBrand>Adventure<span>.</span></HeroBrand>
+          <MenuIcon>☰</MenuIcon>
+        </HeroTopBar>
+
+        <HeroCenter>
+          <HeroSmallTitle>THE</HeroSmallTitle>
+          <HeroMainTitle>WILD LIFE</HeroMainTitle>
+          <HeroTagline>ADVENTURE IN THE FOREST</HeroTagline>
+          <HeroAuthor>With WildGuard AI</HeroAuthor>
+        </HeroCenter>
+
+        <HeroStats>
+          <StatBox>
+            <StatValue>243</StatValue>
+            <StatText>Detections</StatText>
+          </StatBox>
+          <StatBox>
+            <StatValue>126</StatValue>
+            <StatText>Protected Zones</StatText>
+          </StatBox>
+          <StatBox>
+            <StatValue>117</StatValue>
+            <StatText>Camera Traps</StatText>
+          </StatBox>
+        </HeroStats>
+
+        <HeroSocials>
+          <span>f</span>
+          <span>t</span>
+          <span>in</span>
+        </HeroSocials>
+      </HeroWrapper>
+
 
       {/* Features Section */}
       <FeaturesSection id="features">
@@ -329,91 +349,123 @@ const LoginButton = styled.button`
   }
 `;
 
-const HeroSection = styled.section`
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: ${props => props.theme.spacing.xxl};
-  align-items: center;
-  padding: ${props => props.theme.spacing.xxl};
-  max-width: 1400px;
-  margin: 0 auto;
-
-  @media (max-width: ${props => props.theme.breakpoints.tablet}) {
-    grid-template-columns: 1fr;
-    padding: ${props => props.theme.spacing.xl};
-  }
+const HeroWrapper = styled.section`
+  position: relative;
+  height: 100vh;
+  background-image: url('/images/elephant-forest.png');
+  background-size: cover;
+  background-position: center;
+  color: white;
+  overflow: hidden;
 `;
 
-const HeroContent = styled.div``;
-
-const HeroTitle = styled.h1`
-  font-size: ${props => props.theme.fontSizes.xxxl};
-  color: ${props => props.theme.colors.primary};
-  margin-bottom: ${props => props.theme.spacing.lg};
-  line-height: 1.2;
+const HeroOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
 `;
 
-const HeroSubtitle = styled.p`
-  font-size: ${props => props.theme.fontSizes.lg};
-  color: ${props => props.theme.colors.textSecondary};
-  margin-bottom: ${props => props.theme.spacing.xl};
-  line-height: 1.6;
-`;
-
-const HeroButtons = styled.div`
+const HeroTopBar = styled.div`
+  position: relative;
+  z-index: 2;
   display: flex;
-  gap: ${props => props.theme.spacing.md};
-  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 2rem 3rem;
 `;
 
-const PrimaryButton = styled.button`
-  padding: ${props => props.theme.spacing.lg} ${props => props.theme.spacing.xxl};
-  background: ${props => props.theme.colors.primary};
-  color: ${props => props.theme.colors.white};
-  border: none;
-  border-radius: ${props => props.theme.borderRadius.lg};
-  font-size: ${props => props.theme.fontSizes.lg};
-  font-weight: ${props => props.theme.fontWeights.bold};
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.sm};
-  transition: all ${props => props.theme.transitions.normal};
-
-  &:hover {
-    background: ${props => props.theme.colors.primaryDark};
-    transform: translateY(-4px);
-    box-shadow: ${props => props.theme.shadows.lg};
+const HeroBrand = styled.h2`
+  font-weight: 600;
+  span {
+    color: #ffd600;
   }
 `;
 
-const SecondaryButton = styled.button`
-  padding: ${props => props.theme.spacing.lg} ${props => props.theme.spacing.xxl};
-  background: transparent;
-  color: ${props => props.theme.colors.primary};
-  border: 2px solid ${props => props.theme.colors.primary};
-  border-radius: ${props => props.theme.borderRadius.lg};
-  font-size: ${props => props.theme.fontSizes.lg};
-  font-weight: ${props => props.theme.fontWeights.bold};
+const MenuIcon = styled.div`
+  font-size: 1.5rem;
   cursor: pointer;
-  transition: all ${props => props.theme.transitions.normal};
-
-  &:hover {
-    background: ${props => props.theme.colors.primary}15;
-    transform: translateY(-4px);
-  }
 `;
 
-const HeroImage = styled.div`
-  font-size: 8rem;
+const HeroCenter = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -55%);
   text-align: center;
-  animation: float 3s ease-in-out infinite;
+  z-index: 2;
+`;
 
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+const HeroSmallTitle = styled.div`
+  font-size: 1.2rem;
+  letter-spacing: 6px;
+  opacity: 0.8;
+`;
+
+const HeroMainTitle = styled.h1`
+  font-size: clamp(4rem, 10vw, 9rem);
+  font-weight: 800;
+  letter-spacing: 8px;
+  margin: 0;
+`;
+
+const HeroTagline = styled.div`
+  letter-spacing: 6px;
+  font-size: 0.9rem;
+  opacity: 0.85;
+`;
+
+const HeroAuthor = styled.div`
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.7;
+`;
+
+const HeroStats = styled.div`
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4rem;
+  z-index: 2;
+`;
+
+const StatBox = styled.div`
+  text-align: center;
+`;
+
+const StatValue = styled.div`
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffd600;
+`;
+
+const StatText = styled.div`
+  font-size: 0.8rem;
+  opacity: 0.8;
+`;
+
+const HeroSocials = styled.div`
+  position: absolute;
+  right: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  z-index: 2;
+
+  span {
+    cursor: pointer;
+    opacity: 0.8;
+    transition: 0.3s;
+  }
+
+  span:hover {
+    opacity: 1;
+    transform: scale(1.2);
   }
 `;
+
 
 const FeaturesSection = styled.section`
   padding: ${props => props.theme.spacing.xxl};
