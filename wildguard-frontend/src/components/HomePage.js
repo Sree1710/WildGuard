@@ -18,8 +18,7 @@ const HomePage = () => {
       {/* Navigation Header */}
       <Header>
         <Logo>
-          <LogoIcon>🌲</LogoIcon>
-          <LogoText>WildGuard</LogoText>
+          <LogoIcon src="/images/generated-image.png" alt="WildGuard Logo" />
         </Logo>
         <LoginButton onClick={() => navigate('/login')}>
           Login <FaArrowRight />
@@ -31,15 +30,15 @@ const HomePage = () => {
         <HeroOverlay />
 
         <HeroTopBar>
-          <HeroBrand>Adventure<span>.</span></HeroBrand>
-          <MenuIcon>☰</MenuIcon>
+          {/* <HeroBrand>Adventure<span>.</span></HeroBrand>
+          <MenuIcon>☰</MenuIcon> */}
         </HeroTopBar>
 
         <HeroCenter>
           <HeroSmallTitle>THE</HeroSmallTitle>
-          <HeroMainTitle>WILD LIFE</HeroMainTitle>
-          <HeroTagline>ADVENTURE IN THE FOREST</HeroTagline>
-          <HeroAuthor>With WildGuard AI</HeroAuthor>
+          <HeroMainTitle>WILDGUARD</HeroMainTitle>
+          <HeroTagline>Intelligent Wildlife Monitoring and Anti-Poaching System</HeroTagline>
+          {/* <HeroAuthor>With WildGuard AI</HeroAuthor> */}
         </HeroCenter>
 
         <HeroStats>
@@ -57,11 +56,11 @@ const HomePage = () => {
           </StatBox>
         </HeroStats>
 
-        <HeroSocials>
+        {/* <HeroSocials>
           <span>f</span>
           <span>t</span>
           <span>in</span>
-        </HeroSocials>
+        </HeroSocials> */}
       </HeroWrapper>
 
 
@@ -131,105 +130,6 @@ const HomePage = () => {
         </FeaturesGrid>
       </FeaturesSection>
 
-      {/* Modules Section */}
-      <ModulesSection>
-        <SectionTitle>System Modules</SectionTitle>
-        <ModulesGrid>
-          {/* Admin Module */}
-          <ModuleCard>
-            <ModuleHeader color="#2d5016">
-              <ModuleIcon>👨‍💼</ModuleIcon>
-              <ModuleTitle>Admin Module</ModuleTitle>
-            </ModuleHeader>
-            <ModuleFeatures>
-              <ModuleFeature>
-                <FaCheck /> Dashboard with analytics
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Species management
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Camera trap configuration
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Detection history & filters
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Emergency resource management
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> System health monitoring
-              </ModuleFeature>
-            </ModuleFeatures>
-            <ModuleDescription>
-              For authorized administrators and forest officials to manage the entire system
-            </ModuleDescription>
-          </ModuleCard>
-
-          {/* User Module */}
-          <ModuleCard>
-            <ModuleHeader color="#8b6914">
-              <ModuleIcon>👮</ModuleIcon>
-              <ModuleTitle>User Module</ModuleTitle>
-            </ModuleHeader>
-            <ModuleFeatures>
-              <ModuleFeature>
-                <FaCheck /> Real-time alerts
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Live detection feed
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Evidence viewer (images/audio)
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Activity timeline
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Report generation
-              </ModuleFeature>
-              <ModuleFeature>
-                <FaCheck /> Emergency contacts
-              </ModuleFeature>
-            </ModuleFeatures>
-            <ModuleDescription>
-              For field staff and rangers to monitor wildlife and respond to alerts
-            </ModuleDescription>
-          </ModuleCard>
-        </ModulesGrid>
-      </ModulesSection>
-
-      {/* Tech Stack Section */}
-      <TechSection>
-        <SectionTitle>Built With Modern Technology</SectionTitle>
-        <TechGrid>
-          <TechItem>
-            <TechIcon>⚛️</TechIcon>
-            <TechName>React.js</TechName>
-          </TechItem>
-          <TechItem>
-            <TechIcon>🎨</TechIcon>
-            <TechName>styled-components</TechName>
-          </TechItem>
-          <TechItem>
-            <TechIcon>🗺️</TechIcon>
-            <TechName>React Router</TechName>
-          </TechItem>
-          <TechItem>
-            <TechIcon>📊</TechIcon>
-            <TechName>Recharts</TechName>
-          </TechItem>
-          <TechItem>
-            <TechIcon>🎯</TechIcon>
-            <TechName>React Icons</TechName>
-          </TechItem>
-          <TechItem>
-            <TechIcon>🔐</TechIcon>
-            <TechName>Auth Context</TechName>
-          </TechItem>
-        </TechGrid>
-      </TechSection>
-
       {/* CTA Section */}
       <CTASection>
         <CTAContent>
@@ -280,13 +180,15 @@ const HomePage = () => {
             </FooterLink>
           </FooterSection>
           <FooterSection>
-            <FooterTitle>Demo Accounts</FooterTitle>
-            <FooterText>Admin: admin / admin123</FooterText>
-            <FooterText>User: user / user123</FooterText>
+            <FooterTitle>Emergency Contacts</FooterTitle>
+            <FooterText>Police: 100</FooterText>
+            <FooterText>Ambulance: 108</FooterText>
+            <FooterText>Fire & Rescue: 101</FooterText>
+            <FooterText>Forest Helpline: 1926</FooterText>
           </FooterSection>
         </FooterContent>
         <FooterBottom>
-          <p>© 2025 WildGuard - Master's Project. All rights reserved.</p>
+          <p>© 2025 WildGuard. All rights reserved.</p>
         </FooterBottom>
       </Footer>
     </Container>
@@ -318,8 +220,10 @@ const Logo = styled.div`
   cursor: pointer;
 `;
 
-const LogoIcon = styled.div`
-  font-size: 2.5rem;
+const LogoIcon = styled.img`
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
 `;
 
 const LogoText = styled.h1`
@@ -405,12 +309,14 @@ const HeroMainTitle = styled.h1`
   font-weight: 800;
   letter-spacing: 8px;
   margin: 0;
+  white-space: nowrap;
 `;
 
 const HeroTagline = styled.div`
-  letter-spacing: 6px;
-  font-size: 0.9rem;
+  letter-spacing: 2px;
+  font-size: 0.85rem;
   opacity: 0.85;
+  white-space: nowrap;
 `;
 
 const HeroAuthor = styled.div`
@@ -481,9 +387,10 @@ const SectionTitle = styled.h2`
 `;
 
 const FeaturesGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: ${props => props.theme.spacing.xl};
+  justify-content: center;
 `;
 
 const FeatureCard = styled.div`
@@ -493,6 +400,8 @@ const FeatureCard = styled.div`
   box-shadow: ${props => props.theme.shadows.sm};
   transition: all ${props => props.theme.transitions.normal};
   text-align: center;
+  min-width: 280px;
+  max-width: 320px;
 
   &:hover {
     transform: translateY(-8px);
