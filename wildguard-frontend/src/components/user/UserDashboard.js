@@ -17,7 +17,7 @@ const UserDashboard = () => {
   return (
     <Container>
       <PageHeader>
-        <h1>Field Dashboard</h1>
+        <h1>Field Ranger Dashboard</h1>
         <p>Real-time alerts and detection overview</p>
       </PageHeader>
 

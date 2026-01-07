@@ -46,17 +46,8 @@ const Navbar = () => {
     <NavbarContainer>
       <NavbarTop>
         <Logo>
-          <LogoIcon>🌲</LogoIcon>
-          <LogoText>WildGuard</LogoText>
+          <LogoIcon src="/images/generated-image.png" alt="WildGuard Logo" />
         </Logo>
-        
-        <UserInfo>
-          <UserIcon><FaUser /></UserIcon>
-          <UserDetails>
-            <UserName>{user?.name}</UserName>
-            <UserRole>{isAdmin ? 'Administrator' : 'Field Ranger'}</UserRole>
-          </UserDetails>
-        </UserInfo>
       </NavbarTop>
 
       <NavMenu>
@@ -69,6 +60,14 @@ const Navbar = () => {
       </NavMenu>
 
       <NavbarBottom>
+        <UserInfo>
+          <UserIcon><FaUser /></UserIcon>
+          <UserDetails>
+            <UserName>{isAdmin ? 'Admin' : user.name}</UserName>
+            <UserRole>{isAdmin ? 'Administrator' : 'Field Ranger'}</UserRole>
+          </UserDetails>
+        </UserInfo>
+        <Divider />
         <LogoutButton onClick={handleLogout}>
           <FaSignOutAlt />
           <span>Logout</span>
@@ -106,11 +105,16 @@ const Logo = styled.div`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing.md};
-  margin-bottom: ${props => props.theme.spacing.xl};
+  margin-bottom: ${props => props.theme.spacing.xs};
+  justify-content: center;
 `;
 
-const LogoIcon = styled.div`
-  font-size: 2rem;
+const LogoIcon = styled.img`
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  background: transparent;
+  mix-blend-mode: multiply; /* visually removes white backgrounds on colored header */
 `;
 
 const LogoText = styled.div`
@@ -197,6 +201,12 @@ const NavItem = styled(NavLink)`
 const NavbarBottom = styled.div`
   padding: ${props => props.theme.spacing.lg};
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+`;
+
+const Divider = styled.div`
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: ${props => props.theme.spacing.md} 0;
 `;
 
 const LogoutButton = styled.button`

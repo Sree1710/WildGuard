@@ -35,7 +35,7 @@ const HomePage = () => {
         </HeroTopBar>
 
         <HeroCenter>
-          <HeroSmallTitle>THE</HeroSmallTitle>
+          {/* <HeroSmallTitle>THE</HeroSmallTitle> */}
           <HeroMainTitle>WILDGUARD</HeroMainTitle>
           <HeroTagline>Intelligent Wildlife Monitoring and Anti-Poaching System</HeroTagline>
           {/* <HeroAuthor>With WildGuard AI</HeroAuthor> */}

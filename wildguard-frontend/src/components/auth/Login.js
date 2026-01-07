@@ -1,331 +1,366 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaUserShield, FaUser, FaLock } from 'react-icons/fa';
+import { FaUserShield, FaUser, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
-/**
- * Login Page Component
- * Provides authentication interface for both Admin and User roles
- */
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
-  
+
   const [error, setError] = useState('');
-  const [selectedRole, setSelectedRole] = useState('admin'); // admin or user
+  const [selectedRole, setSelectedRole] = useState('admin');
 
-  // Handle input changes
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    setError(''); // Clear error on input change
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError('');
   };
 
-  // Handle form submission
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    
-    if (!formData.username || !formData.password) {
-      setError('Please enter both username and password');
-      return;
-    }
-
-    const result = login(formData.username, formData.password);
-    
-    if (result.success) {
-      // Redirect based on role
-      if (formData.username === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/user/dashboard');
-      }
-    } else {
-      setError(result.message);
-    }
-  };
-
-  // Quick login function for testing
+  // Quick login shortcuts for demo accounts
   const quickLogin = (role) => {
-    const credentials = role === 'admin' 
+    const credentials = role === 'admin'
       ? { username: 'admin', password: 'admin123' }
       : { username: 'user', password: 'user123' };
-    
+
     const result = login(credentials.username, credentials.password);
-    
+
     if (result.success) {
       navigate(role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (!formData.username || !formData.password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
+    const result = login(formData.username, formData.password);
+
+    if (result.success) {
+      navigate(
+        formData.username === 'admin'
+          ? '/admin/dashboard'
+          : '/user/dashboard'
+      );
+    } else {
+      setError(result.message);
+    }
+  };
+
   return (
-    <LoginContainer>
-      <LoginCard>
-        <LogoSection>
-          <LogoIcon>🌲</LogoIcon>
-          <Title>WildGuard</Title>
-          <Subtitle>Wildlife Monitoring & Anti-Poaching System</Subtitle>
-        </LogoSection>
+    <Page>
+      {/* LEFT */}
+      <FormSection>
+        <FormWrapper>
+          <BackRow>
+            <BackButton type="button" onClick={() => navigate('/')}> 
+              <FaArrowLeft /> Back to Home
+            </BackButton>
+          </BackRow>
+          <Heading>Welcome back</Heading>
+          <SubHeading>Please enter your details</SubHeading>
 
-        <RoleSelector>
-          <RoleButton
-            active={selectedRole === 'admin'}
-            onClick={() => setSelectedRole('admin')}
-          >
-            <FaUserShield /> Admin
-          </RoleButton>
-          <RoleButton
-            active={selectedRole === 'user'}
-            onClick={() => setSelectedRole('user')}
-          >
-            <FaUser /> Field User
-          </RoleButton>
-        </RoleSelector>
+          <RoleSelector>
+            <RoleButton
+              active={selectedRole === 'admin'}
+              onClick={() => setSelectedRole('admin')}
+            >
+              <FaUserShield /> Admin
+            </RoleButton>
+            <RoleButton
+              active={selectedRole === 'user'}
+              onClick={() => setSelectedRole('user')}
+            >
+              <FaUser /> Field User
+            </RoleButton>
+          </RoleSelector>
 
-        <LoginForm onSubmit={handleSubmit}>
-          <InputGroup>
-            <InputIcon>
-              <FaUser />
-            </InputIcon>
+          <Form onSubmit={handleSubmit}>
+            <Label>Username</Label>
             <Input
               type="text"
               name="username"
-              placeholder="Username"
+              placeholder="Enter your username"
               value={formData.username}
               onChange={handleChange}
             />
-          </InputGroup>
 
-          <InputGroup>
-            <InputIcon>
-              <FaLock />
-            </InputIcon>
+            <Label>Password</Label>
             <Input
               type="password"
               name="password"
-              placeholder="Password"
+              placeholder="••••••••"
               value={formData.password}
               onChange={handleChange}
             />
-          </InputGroup>
 
-          {error && <ErrorMessage>{error}</ErrorMessage>}
+            {error && <Error>{error}</Error>}
 
-          <LoginButton type="submit">
-            Login as {selectedRole === 'admin' ? 'Admin' : 'Field User'}
-          </LoginButton>
-        </LoginForm>
+            <Options>
+              <Checkbox>
+                <input type="checkbox" />
+                Remember for 30 days
+              </Checkbox>
+              <Forgot>Forgot Password?</Forgot>
+            </Options>
 
-        <DemoSection>
-          <DemoTitle>Quick Access (Demo)</DemoTitle>
-          <DemoButtons>
-            <DemoButton onClick={() => quickLogin('admin')}>
-              <FaUserShield /> Login as Admin
-            </DemoButton>
-            <DemoButton onClick={() => quickLogin('user')}>
-              <FaUser /> Login as User
-            </DemoButton>
-          </DemoButtons>
-          <DemoCredentials>
-            <CredentialBox>
-              <strong>Admin:</strong> admin / admin123
-            </CredentialBox>
-            <CredentialBox>
-              <strong>User:</strong> user / user123
-            </CredentialBox>
-          </DemoCredentials>
-        </DemoSection>
-      </LoginCard>
-    </LoginContainer>
+            <Submit type="submit">
+              Sign in
+            </Submit>
+          </Form>
+
+          <DemoSection>
+            <DemoTitle>Quick Access (Demo)</DemoTitle>
+            <DemoButtons>
+              <DemoButton onClick={() => quickLogin('admin')}>
+                <FaUserShield /> Login as Admin
+              </DemoButton>
+              <DemoButton onClick={() => quickLogin('user')}>
+                <FaUser /> Login as User
+              </DemoButton>
+            </DemoButtons>
+            {/* <DemoCredentials>
+              <CredentialBox>
+                <strong>Admin:</strong> admin / admin123
+              </CredentialBox>
+              <CredentialBox>
+                <strong>User:</strong> user / user123
+              </CredentialBox>
+            </DemoCredentials> */}
+          </DemoSection>
+        </FormWrapper>
+      </FormSection>
+
+      {/* RIGHT */}
+      <ImageSection>
+        <Overlay>
+          {/* <Badge>Trusted by 10,000+ users</Badge> */}
+          <HeroTitle>Protect Wildlife with Intelligence</HeroTitle>
+          <HeroText>
+            WildGuard helps conservation teams detect threats,
+            monitor wildlife, and respond faster using AI.
+          </HeroText>
+        </Overlay>
+      </ImageSection>
+    </Page>
   );
 };
 
-// Styled Components
-const LoginContainer = styled.div`
+export default Login;
+
+/* ---------------- styled components ---------------- */
+
+const Page = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
   min-height: 100vh;
+`;
+
+const FormSection = styled.div`
   display: flex;
-  align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, ${props => props.theme.colors.primary} 0%, ${props => props.theme.colors.primaryDark} 100%);
-  padding: ${props => props.theme.spacing.lg};
+  align-items: center;
+  background: #ffffff;
 `;
 
-const LoginCard = styled.div`
-  background: ${props => props.theme.colors.white};
-  border-radius: ${props => props.theme.borderRadius.lg};
-  box-shadow: ${props => props.theme.shadows.xl};
-  padding: ${props => props.theme.spacing.xxl};
+const FormWrapper = styled.div`
   width: 100%;
-  max-width: 450px;
+  max-width: 420px;
+  padding: 2rem;
 `;
 
-const LogoSection = styled.div`
-  text-align: center;
-  margin-bottom: ${props => props.theme.spacing.xl};
+const BackRow = styled.div`
+  margin-bottom: 0.75rem;
 `;
 
-const LogoIcon = styled.div`
-  font-size: 4rem;
-  margin-bottom: ${props => props.theme.spacing.md};
+const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  color: #14532d;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f8fafc;
+  }
 `;
 
-const Title = styled.h1`
-  color: ${props => props.theme.colors.primary};
-  margin-bottom: ${props => props.theme.spacing.xs};
+const Heading = styled.h1`
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
 `;
 
-const Subtitle = styled.p`
-  color: ${props => props.theme.colors.textSecondary};
-  font-size: ${props => props.theme.fontSizes.sm};
-  margin: 0;
+const SubHeading = styled.p`
+  color: #6b7280;
+  margin-bottom: 2rem;
 `;
 
 const RoleSelector = styled.div`
   display: flex;
-  gap: ${props => props.theme.spacing.sm};
-  margin-bottom: ${props => props.theme.spacing.xl};
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
 `;
 
 const RoleButton = styled.button`
   flex: 1;
-  padding: ${props => props.theme.spacing.md};
-  border: 2px solid ${props => props.active ? props.theme.colors.primary : props.theme.colors.gray};
-  background: ${props => props.active ? props.theme.colors.primary : props.theme.colors.white};
-  color: ${props => props.active ? props.theme.colors.white : props.theme.colors.textPrimary};
-  border-radius: ${props => props.theme.borderRadius.md};
-  font-size: ${props => props.theme.fontSizes.md};
-  font-weight: ${props => props.theme.fontWeights.medium};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: ${props => props.theme.spacing.sm};
-  transition: all ${props => props.theme.transitions.normal};
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid ${({ active }) => (active ? '#14532d' : '#e5e7eb')};
+  background: ${({ active }) => (active ? '#14532d' : '#fff')};
+  color: ${({ active }) => (active ? '#fff' : '#111')};
   cursor: pointer;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
+  display: flex;
+  justify-content: center;
+  gap: 6px;
 `;
 
-const LoginForm = styled.form`
+const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: ${props => props.theme.spacing.lg};
 `;
 
-const InputGroup = styled.div`
-  position: relative;
-  display: flex;
-  align-items: center;
-`;
-
-const InputIcon = styled.div`
-  position: absolute;
-  left: ${props => props.theme.spacing.md};
-  color: ${props => props.theme.colors.gray};
-  font-size: ${props => props.theme.fontSizes.lg};
+const Label = styled.label`
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: ${props => props.theme.spacing.md};
-  padding-left: 3rem;
-  border: 2px solid ${props => props.theme.colors.lightGray};
-  border-radius: ${props => props.theme.borderRadius.md};
-  font-size: ${props => props.theme.fontSizes.md};
-  transition: border-color ${props => props.theme.transitions.fast};
-
-  &:focus {
-    border-color: ${props => props.theme.colors.primary};
-  }
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 1rem;
 `;
 
-const ErrorMessage = styled.div`
-  color: ${props => props.theme.colors.danger};
-  font-size: ${props => props.theme.fontSizes.sm};
-  text-align: center;
-  padding: ${props => props.theme.spacing.sm};
-  background: ${props => props.theme.colors.danger}20;
-  border-radius: ${props => props.theme.borderRadius.sm};
+const Options = styled.div`
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
 `;
 
-const LoginButton = styled.button`
-  padding: ${props => props.theme.spacing.md};
-  background: ${props => props.theme.colors.primary};
-  color: ${props => props.theme.colors.white};
-  border: none;
-  border-radius: ${props => props.theme.borderRadius.md};
-  font-size: ${props => props.theme.fontSizes.lg};
-  font-weight: ${props => props.theme.fontWeights.semibold};
+const Checkbox = styled.label`
+  display: flex;
+  gap: 6px;
+  align-items: center;
+`;
+
+const Forgot = styled.span`
+  color: #14532d;
   cursor: pointer;
-  transition: all ${props => props.theme.transitions.normal};
+`;
 
-  &:hover {
-    background: ${props => props.theme.colors.primaryDark};
-    transform: translateY(-2px);
-    box-shadow: ${props => props.theme.shadows.md};
-  }
+const Submit = styled.button`
+  background: #14532d;
+  color: white;
+  padding: 0.8rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
 `;
 
 const DemoSection = styled.div`
-  margin-top: ${props => props.theme.spacing.xl};
-  padding-top: ${props => props.theme.spacing.xl};
-  border-top: 1px solid ${props => props.theme.colors.lightGray};
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #e5e7eb;
 `;
 
 const DemoTitle = styled.h4`
   text-align: center;
-  color: ${props => props.theme.colors.textSecondary};
-  font-size: ${props => props.theme.fontSizes.sm};
-  margin-bottom: ${props => props.theme.spacing.md};
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
 `;
 
 const DemoButtons = styled.div`
   display: flex;
-  gap: ${props => props.theme.spacing.sm};
-  margin-bottom: ${props => props.theme.spacing.md};
+  gap: 0.5rem;
 `;
 
 const DemoButton = styled.button`
   flex: 1;
-  padding: ${props => props.theme.spacing.sm};
-  background: ${props => props.theme.colors.secondary};
-  color: ${props => props.theme.colors.white};
+  padding: 0.7rem;
+  background: #8b6914;
+  color: white;
   border: none;
-  border-radius: ${props => props.theme.borderRadius.sm};
-  font-size: ${props => props.theme.fontSizes.sm};
+  border-radius: 8px;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: ${props => props.theme.spacing.xs};
+  gap: 8px;
   cursor: pointer;
-  transition: all ${props => props.theme.transitions.fast};
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    background: ${props => props.theme.colors.secondaryLight};
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
   }
 `;
 
 const DemoCredentials = styled.div`
   display: flex;
   flex-direction: column;
-  gap: ${props => props.theme.spacing.xs};
+  gap: 0.4rem;
+  margin-top: 0.75rem;
 `;
 
 const CredentialBox = styled.div`
-  padding: ${props => props.theme.spacing.sm};
-  background: ${props => props.theme.colors.bgLight};
-  border-radius: ${props => props.theme.borderRadius.sm};
-  font-size: ${props => props.theme.fontSizes.xs};
+  padding: 0.6rem;
+  background: #f8fafc;
+  border-radius: 6px;
+  font-size: 0.85rem;
   text-align: center;
-  color: ${props => props.theme.colors.textSecondary};
+  color: #475569;
 `;
 
-export default Login;
+const Error = styled.div`
+  color: #b91c1c;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+`;
+
+const ImageSection = styled.div`
+  background: url('/images/login-bg.webp') center/cover no-repeat;
+  position: relative;
+`;
+
+const Overlay = styled.div`
+  position: absolute;
+  bottom: 3rem;
+  left: 3rem;
+  color: white;
+  max-width: 420px;
+`;
+
+const Badge = styled.div`
+  background: rgba(0,0,0,0.5);
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  display: inline-block;
+  margin-bottom: 1rem;
+`;
+
+const HeroTitle = styled.h2`
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+`;
+
+const HeroText = styled.p`
+  font-size: 1rem;
+  opacity: 0.9;
+`;
