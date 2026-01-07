@@ -136,6 +136,10 @@ const Login = () => {
               </CredentialBox>
             </DemoCredentials> */}
           </DemoSection>
+          
+          <SignupLink>
+            Don't have an account? <LinkButton onClick={() => navigate('/signup')}>Sign up</LinkButton>
+          </SignupLink>
         </FormWrapper>
       </FormSection>
 
@@ -363,4 +367,21 @@ const HeroTitle = styled.h2`
 const HeroText = styled.p`
   font-size: 1rem;
   opacity: 0.9;
+`;
+
+const SignupLink = styled.div`
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+`;
+
+const LinkButton = styled.span`
+  color: #14532d;
+  font-weight: 600;
+  cursor: pointer;
+  
+  &:hover {
+    text-decoration: underline;
+  }
 `;

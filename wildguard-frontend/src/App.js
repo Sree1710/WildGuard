@@ -6,6 +6,7 @@ import { GlobalStyles } from './styles/GlobalStyles';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Login from './components/auth/Login';
+import Signup from './components/auth/Signup';
 import HomePage from './components/HomePage';
 import Navbar from './components/shared/Navbar';
 import { AppContainer, MainContent } from './components/shared/Layout';
@@ -42,6 +43,9 @@ function App() {
 
             {/* Public Route - Login */}
             <Route path="/login" element={<Login />} />
+            
+            {/* Public Route - Signup */}
+            <Route path="/signup" element={<Signup />} />
 
             {/* Admin Routes */}
             <Route
