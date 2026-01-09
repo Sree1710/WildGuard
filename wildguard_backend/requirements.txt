@@ -1,0 +1,49 @@
+# WildGuard Backend - Requirements
+# Python dependencies for the backend system
+
+# Core
+Django==4.2.7
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+
+# Database
+mongoengine==0.28.0
+pymongo==4.6.0
+
+# Authentication
+PyJWT==2.10.1
+python-decouple==3.8
+
+# ML/Data
+numpy==1.26.0
+scikit-learn==1.4.0
+pandas==2.1.4
+
+# Deep Learning (for image model training)
+tensorflow==2.15.0
+
+# Image Processing
+Pillow==10.1.0
+opencv-python==4.8.1.78
+
+# Audio Processing
+librosa==0.10.1
+soundfile==0.12.1
+scikit-image==0.22.0
+
+# Utilities
+requests==2.31.0
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Development
+pytest==7.4.3
+black==23.12.0
+flake8==6.1.0
+
+# Deployment
+gunicorn==21.2.0
+python-dotenv==1.0.0
+
+# Optional: Mock data generation
+faker==21.0.0
