@@ -141,7 +141,7 @@ Kaggle Datasets (manual) → Feature Extraction → Feature Selection
 
 **Audio Datasets**:
 1. **Wildlife Sounds**: Environmental Sound Classification datasets
-   - Animal vocalizations (elephant, lion, bird)
+   - Animal vocalizations (elephant, lion)
    - Minimum 50 samples per class
    - Recommended: 200+ per class
 
