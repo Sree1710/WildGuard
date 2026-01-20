@@ -1,7 +1,5 @@
 # WildGuard – Intelligent Wildlife Monitoring and Anti-Poaching System
 
-**MCA Final Year Project | 2026**
-
 ---
 
 ## Project Title & Abstract
