@@ -1,9 +1,9 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { 
-  FaHome, FaPaw, FaCamera, FaHistory, FaPhone, FaServer, 
-  FaSignOutAlt, FaUser, FaBell, FaChartLine, FaFileAlt 
+import {
+  FaHome, FaPaw, FaCamera, FaHistory, FaPhone, FaServer,
+  FaSignOutAlt, FaUser, FaBell, FaChartLine, FaFileAlt
 } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 
@@ -23,7 +23,6 @@ const Navbar = () => {
   // Admin navigation links
   const adminLinks = [
     { path: '/admin/dashboard', icon: <FaHome />, label: 'Dashboard' },
-    { path: '/admin/species', icon: <FaPaw />, label: 'Species' },
     { path: '/admin/cameras', icon: <FaCamera />, label: 'Cameras' },
     { path: '/admin/detections', icon: <FaHistory />, label: 'Detections' },
     { path: '/admin/emergency', icon: <FaPhone />, label: 'Emergency' },

@@ -151,29 +151,9 @@ class ApiService {
     return this.request('/admin/dashboard/');
   }
 
-  async getSpeciesList() {
-    return this.request('/admin/species/');
-  }
 
-  async createSpecies(speciesData) {
-    return this.request('/admin/species/create/', {
-      method: 'POST',
-      body: speciesData,
-    });
-  }
 
-  async updateSpecies(speciesId, speciesData) {
-    return this.request(`/admin/species/${speciesId}/`, {
-      method: 'PUT',
-      body: speciesData,
-    });
-  }
 
-  async deleteSpecies(speciesId) {
-    return this.request(`/admin/species/${speciesId}/`, {
-      method: 'DELETE',
-    });
-  }
 
   async getCameraList() {
     return this.request('/admin/cameras/');

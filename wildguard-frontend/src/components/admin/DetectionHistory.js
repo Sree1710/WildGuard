@@ -6,22 +6,41 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { Form, FormGroup, Label, Select, Input, FormRow } from '../shared/Form';
 import { Button } from '../shared/Button';
 import Modal from '../shared/Modal';
-import { detectionHistory as allDetections } from '../../data/mockData';
+import api from '../../services/api';
 
 /**
  * Detection History Component
  * View and filter detection records
  */
 const DetectionHistory = () => {
-  const [detections, setDetections] = useState(allDetections);
+  const [detections, setDetections] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     type: 'all',
-    zone: 'all',
-    dateFrom: '',
-    dateTo: '',
+    alert_level: '',
+    object_type: '',
   });
   const [selectedDetection, setSelectedDetection] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Fetch detections on mount
+  React.useEffect(() => {
+    fetchDetections();
+  }, []);
+
+  const fetchDetections = async () => {
+    try {
+      setLoading(true);
+      const response = await api.getDetections({ limit: 50 });
+      if (response.success) {
+        setDetections(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch detections:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle filter changes
   const handleFilterChange = (e) => {
@@ -32,30 +51,22 @@ const DetectionHistory = () => {
     });
   };
 
-  // Apply filters
+  // Apply filters - Client side for now (or update create fetchDetections to use filters)
   const handleApplyFilters = () => {
-    let filtered = [...allDetections];
-
-    if (filters.type !== 'all') {
-      filtered = filtered.filter(d => d.type === filters.type);
-    }
-
-    if (filters.zone !== 'all') {
-      filtered = filtered.filter(d => d.zone === filters.zone);
-    }
-
-    setDetections(filtered);
+    // Ideally this should trigger a new API call with query params
+    // For now, client-side filtering on the fetched batch
+    // Implementation pending full server-side filter support
+    fetchDetections();
   };
 
   // Reset filters
   const handleResetFilters = () => {
     setFilters({
       type: 'all',
-      zone: 'all',
-      dateFrom: '',
-      dateTo: '',
+      alert_level: '',
+      object_type: '',
     });
-    setDetections(allDetections);
+    fetchDetections();
   };
 
   // View detection details
@@ -67,11 +78,15 @@ const DetectionHistory = () => {
   // Get badge variant based on detection type
   const getTypeBadgeVariant = (type) => {
     const map = {
-      'Animal': 'success',
-      'Human': 'warning',
-      'Suspicious': 'danger',
+      'animal': 'success',
+      'human': 'warning',
+      'vehicle': 'danger',
+      'gunshot': 'danger',
     };
-    return map[type] || 'info';
+    // Map detected_object or backend type to badge
+    if (type === 'human') return 'warning';
+    if (['gunshot', 'vehicle'].includes(type)) return 'danger';
+    return 'success'; // Default to animal
   };
 
   return (
@@ -162,31 +177,37 @@ const DetectionHistory = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {detections.map((detection) => (
-                <TableRow key={detection.id}>
-                  <TableCell>{detection.id}</TableCell>
-                  <TableCell>
-                    <Badge variant={getTypeBadgeVariant(detection.type)}>
-                      {detection.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{detection.species}</TableCell>
-                  <TableCell>{detection.timestamp}</TableCell>
-                  <TableCell>{detection.location}</TableCell>
-                  <TableCell>
-                    <ConfidenceBar>
-                      <ConfidenceFill width={detection.confidence * 100}>
-                        {Math.round(detection.confidence * 100)}%
-                      </ConfidenceFill>
-                    </ConfidenceBar>
-                  </TableCell>
-                  <TableCell>
-                    <ViewButton onClick={() => handleViewDetails(detection)}>
-                      <FaImage /> View
-                    </ViewButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {loading ? (
+                <TableRow><TableCell colSpan="7">Loading detections...</TableCell></TableRow>
+              ) : detections.length === 0 ? (
+                <TableRow><TableCell colSpan="7">No detections found.</TableCell></TableRow>
+              ) : (
+                detections.map((detection) => (
+                  <TableRow key={detection.id}>
+                    <TableCell>{detection.id.substring(0, 8)}...</TableCell>
+                    <TableCell>
+                      <Badge variant={getTypeBadgeVariant(detection.detected_object)}>
+                        {detection.detection_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{detection.detected_object}</TableCell>
+                    <TableCell>{new Date(detection.created_at).toLocaleString()}</TableCell>
+                    <TableCell>{detection.camera_name || 'Unknown'}</TableCell>
+                    <TableCell>
+                      <ConfidenceBar>
+                        <ConfidenceFill width={detection.confidence * 100}>
+                          {Math.round(detection.confidence * 100)}%
+                        </ConfidenceFill>
+                      </ConfidenceBar>
+                    </TableCell>
+                    <TableCell>
+                      <ViewButton onClick={() => handleViewDetails(detection)}>
+                        <FaImage /> View
+                      </ViewButton>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -209,14 +230,14 @@ const DetectionHistory = () => {
               <DetailItem>
                 <DetailLabel>Type</DetailLabel>
                 <DetailValue>
-                  <Badge variant={getTypeBadgeVariant(selectedDetection.type)}>
-                    {selectedDetection.type}
+                  <Badge variant={getTypeBadgeVariant(selectedDetection.detected_object)}>
+                    {selectedDetection.detection_type}
                   </Badge>
                 </DetailValue>
               </DetailItem>
               <DetailItem>
                 <DetailLabel>Species/Subject</DetailLabel>
-                <DetailValue>{selectedDetection.species}</DetailValue>
+                <DetailValue>{selectedDetection.detected_object}</DetailValue>
               </DetailItem>
               <DetailItem>
                 <DetailLabel>Confidence</DetailLabel>
@@ -224,20 +245,40 @@ const DetectionHistory = () => {
               </DetailItem>
               <DetailItem>
                 <DetailLabel>Timestamp</DetailLabel>
-                <DetailValue>{selectedDetection.timestamp}</DetailValue>
+                <DetailValue>{new Date(selectedDetection.created_at).toLocaleString()}</DetailValue>
               </DetailItem>
               <DetailItem>
                 <DetailLabel>Location</DetailLabel>
-                <DetailValue>{selectedDetection.location}</DetailValue>
+                <DetailValue>{selectedDetection.camera_name} - {selectedDetection.camera_location}</DetailValue>
               </DetailItem>
             </DetailGrid>
 
             <ImagePreview>
-              <ImagePlaceholder>
-                <FaImage size={60} />
-                <p>Image: {selectedDetection.image}</p>
-                <small>Image preview would display here in production</small>
-              </ImagePlaceholder>
+              {selectedDetection.detection_type === 'audio' ? (
+                <div style={{ width: '100%', padding: '20px', textAlign: 'center', background: '#f8f9fa', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔊</div>
+                  {selectedDetection.audio_url ? (
+                    <audio controls style={{ width: '100%' }}>
+                      <source src={selectedDetection.audio_url} type="audio/wav" />
+                      Your browser does not support the audio element.
+                    </audio>
+                  ) : (
+                    <p>No audio file available</p>
+                  )}
+                </div>
+              ) : selectedDetection.image_url ? (
+                <img
+                  src={selectedDetection.image_url}
+                  alt={selectedDetection.detected_object}
+                  style={{ width: '100%', borderRadius: '8px', maxHeight: '500px', objectFit: 'contain' }}
+                  onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x300?text=Image+Load+Error'; }}
+                />
+              ) : (
+                <ImagePlaceholder>
+                  <FaImage size={60} />
+                  <p>No Image Available</p>
+                </ImagePlaceholder>
+              )}
             </ImagePreview>
           </DetectionDetail>
         )}
@@ -303,8 +344,8 @@ const ConfidenceBar = styled.div`
 const ConfidenceFill = styled.div`
   width: ${props => props.width}%;
   height: 100%;
-  background: ${props => props.width > 80 ? props.theme.colors.success : 
-                props.width > 60 ? props.theme.colors.warning : props.theme.colors.danger};
+  background: ${props => props.width > 80 ? props.theme.colors.success :
+    props.width > 60 ? props.theme.colors.warning : props.theme.colors.danger};
   display: flex;
   align-items: center;
   justify-content: center;

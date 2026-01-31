@@ -61,7 +61,7 @@ Wildlife conservation faces critical challenges:
 │                   ML Inference Services                          │
 │  ┌──────────────────────┐   ┌──────────────────────┐           │
 │  │  Image Detector      │   │  Audio Detector      │           │
-│  │  (YOLO v5 Small)     │   │  (Random Forest)     │           │
+│  │  (YOLOv8 Small)    │   │  (Random Forest)     │           │
 │  │  • Multi-object      │   │  • 8 sound classes   │           │
 │  │  • Bounding boxes    │   │  • Gunshot priority  │           │
 │  └──────────────────────┘   └──────────────────────┘           │
@@ -115,7 +115,7 @@ Kaggle Datasets (manual) → Feature Extraction → Feature Selection
 - **Server**: Gunicorn (production), Django dev server (development)
 
 ### Machine Learning
-- **Image Classification**: TensorFlow 2.15.0, Keras, YOLOv5 Small (production), MobileNetV2 (transfer learning experiments)
+- **Image Classification**: TensorFlow 2.15.0, Keras, YOLOv8 Small (production), MobileNetV2 (transfer learning experiments)
 - **Audio Classification**: librosa 0.10.1 (MFCC extraction), scikit-learn 1.4.0 (SVM, KNN, Random Forest)
 - **Data Processing**: NumPy 1.26.0, Pandas 2.1.4, scikit-image 0.22.0
 - **Feature Engineering**: MFCC (20 coefficients + deltas), spectral features, zero-crossing rate, chroma features
@@ -125,7 +125,7 @@ Kaggle Datasets (manual) → Feature Extraction → Feature Selection
 - **State Management**: Context API
 - **Routing**: React Router
 - **Styling**: Styled Components
-- **HTTP Client**: Axios
+- **HTTP Client**: Fetch API
 
 ### Infrastructure
 - **CORS**: django-cors-headers 4.3.1
@@ -409,20 +409,22 @@ zero_crossing_rate_mean, spectral_flux_mean
    - FPS: 2.86
    - Verdict: Too slow for real-time monitoring
 
-4. **YOLO v5 Small** ⭐ **SELECTED**
-   - Model size: 7.5MB
-   - Accuracy: 91.3%
-   - Inference: 120ms
-   - FPS: 8.33
-   - Suitability score: 9.27/10
-   - Verdict: Optimal balance of speed and accuracy
+4. **YOLOv8 Small** ⭐ **SELECTED**
+   - Model size: 22MB
+   - Parameters: 11.2M
+   - Accuracy: 92.5%
+   - Inference: 100ms (CPU), 1-4ms (GPU)
+   - FPS: 10+ (CPU), 60+ (GPU)
+   - Suitability score: 9.5/10
+   - Verdict: State-of-the-art balance of speed and accuracy
 
-**Key Advantages of YOLO**:
+**Key Advantages of YOLOv8**:
 - Multi-object detection (detects multiple animals/humans in single frame)
 - Provides bounding boxes for evidence storage
-- Real-time performance (8+ FPS on edge devices)
-- Small model size (suitable for Raspberry Pi deployment)
-- Inference 2.9× faster than ResNet50
+- Real-time performance (10+ FPS on CPU, 60+ on GPU)
+- Anchor-free detection (better generalization)
+- Export to ONNX, TensorRT, CoreML for edge deployment
+- Inference 3.5× faster than ResNet50
 
 ---
 
@@ -625,10 +627,11 @@ python generate_experiment_results.py
 4. **Model size**: 14MB → deployable on camera traps
 5. **Inference speed**: ~80ms → supports real-time monitoring
 
-**Alternative (YOLO v5 Small)**:
+**Alternative (YOLOv8 Small)**:
 - For production deployment requiring bounding boxes and multi-object detection
-- Accuracy: 91.3%, Inference: 120ms, Model: 7.5MB
+- Accuracy: 92.5%, Inference: 100ms (CPU), Model: 22MB
 - Recommended for scenarios needing object localization
+- Install: `pip install ultralytics`
 
 **Deployment Strategy**:
 - Load `image_classifier.h5` in `ml_services/visual_detector.py`
@@ -694,19 +697,17 @@ wildguard_backend/
 - Detection history review
 - Evidence management
 
-**API Endpoints** (12 total):
+**API Endpoints** (10 total):
 - `GET /api/admin/dashboard/` - System overview (counts, recent activity)
 - `GET /api/admin/species/` - List all species
-- `POST /api/admin/species/` - Create species entry
+- `POST /api/admin/species/create/` - Create species entry
 - `PUT /api/admin/species/<id>/` - Update species
-- `DELETE /api/admin/species/<id>/` - Delete species
 - `GET /api/admin/cameras/` - List camera traps
-- `POST /api/admin/cameras/` - Register new camera
-- `PATCH /api/admin/cameras/<id>/` - Update camera status
-- `GET /api/admin/alerts/` - List emergency alerts
-- `POST /api/admin/alerts/<id>/resolve/` - Mark alert resolved
-- `GET /api/admin/detections/history/` - Detection history with filters
-- `GET /api/admin/system/health/` - System metrics (uptime, storage, DB stats)
+- `POST /api/admin/cameras/create/` - Register new camera
+- `PUT /api/admin/cameras/<id>/` - Update camera status
+- `GET /api/admin/emergency/` - List emergency alerts
+- `POST /api/admin/emergency/<id>/resolve/` - Mark alert resolved
+- `GET /api/admin/system-monitoring/` - System metrics
 
 **Access Control**: All endpoints require `@require_role('admin')`
 
@@ -727,10 +728,10 @@ wildguard_backend/
 **API Endpoints** (6 total):
 - `GET /api/user/dashboard/` - Personal dashboard (stats, recent alerts)
 - `GET /api/user/alerts/` - Alerts for assigned cameras
-- `GET /api/user/evidence/<event_id>/` - View detection evidence
-- `GET /api/user/activity/` - Activity timeline with pagination
+- `GET /api/user/evidence/<detection_id>/` - View detection evidence
+- `GET /api/user/activity-timeline/` - Activity timeline with pagination
 - `GET /api/user/reports/` - Generate and download reports
-- `GET /api/user/emergency/` - Emergency contacts and procedures
+- `GET /api/user/emergency-info/` - Emergency contacts and procedures
 
 **Access Control**: Endpoints require `@require_auth`, user sees only assigned cameras
 
@@ -739,7 +740,7 @@ wildguard_backend/
 **Purpose**: Core domain models and detection management
 
 **Files**:
-- `detection/models.py` - MongoEngine models (7 collections)
+- `detection/models.py` - MongoEngine models (6 collections)
 - `detection/views.py` - Detection submission and query APIs
 
 **Models** (see Database Design section for details):
@@ -749,12 +750,12 @@ wildguard_backend/
 - `Detection` - Detection events (image/audio)
 - `EmergencyAlert` - High-priority alerts
 - `ActivityLog` - Audit trail
-- `DetectionEvidence` - Media files metadata
+- `SystemMetrics` - System performance metrics
 
 **API Endpoints** (3 total):
-- `POST /api/detections/submit/` - Submit new detection (from camera/sensor)
 - `GET /api/detections/` - Query detections (filters: type, date, camera)
 - `GET /api/detections/<id>/` - Get detection details
+- `POST /api/detections/<id>/verify/` - Verify a detection
 
 ---
 
