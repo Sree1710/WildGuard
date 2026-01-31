@@ -1,0 +1,63 @@
+{
+    "experiment_name": "Audio Classification - Wildlife Monitoring",
+    "date": "2026-01-29 12:01:06",
+    "dataset": {
+        "source": "Kaggle (Manual Download)",
+        "categories": [
+            "animal",
+            "human",
+            "gunshot"
+        ],
+        "total_samples": 150,
+        "features_original": 60,
+        "features_selected": 20
+    },
+    "feature_extraction": {
+        "method": "MFCC (Mel-Frequency Cepstral Coefficients)",
+        "parameters": {
+            "n_mfcc": 20,
+            "sample_rate": 22050,
+            "duration": 3
+        },
+        "features": [
+            "MFCC coefficients (20)",
+            "Delta MFCC (20)",
+            "Delta-Delta MFCC (20)"
+        ]
+    },
+    "feature_selection": {
+        "methods": [
+            "Variance Threshold (0.01)",
+            "SelectKBest (top 20)"
+        ],
+        "reduction": "66.7%"
+    },
+    "models_compared": [
+        {
+            "name": "SVM",
+            "accuracy": 0.9333333333333333,
+            "precision": 0.9393939393939393,
+            "recall": 0.9333333333333333,
+            "f1_score": 0.9312169312169313
+        },
+        {
+            "name": "KNN",
+            "accuracy": 0.9,
+            "precision": 0.9230769230769231,
+            "recall": 0.9,
+            "f1_score": 0.9019408424442749
+        },
+        {
+            "name": "Random Forest",
+            "accuracy": 0.9333333333333333,
+            "precision": 0.9393939393939393,
+            "recall": 0.9333333333333333,
+            "f1_score": 0.9312169312169313
+        }
+    ],
+    "best_model": {
+        "name": "SVM",
+        "f1_score": 0.9312169312169313,
+        "reason": "Highest F1-score - best balance of precision and recall"
+    }
+}

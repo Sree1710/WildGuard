@@ -4,8 +4,7 @@ URL Configuration
 Main URL router for WildGuard API.
 """
 
-from django.urls import path, include
-from rest_framework import routers
+from django.urls import path
 from detection import views as detection_views
 from admin_module import views as admin_views
 from user_module import views as user_views

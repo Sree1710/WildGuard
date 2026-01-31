@@ -98,8 +98,8 @@ class User(Document):
     )
     is_active = BooleanField(default=True)
     
-    # Assigned camera traps (for field staff)
-    assigned_cameras = ListField(ReferenceField('CameraTrap'))
+    # Assigned camera traps (for field staff) - Store as ObjectId strings to avoid reference issues
+    assigned_cameras = ListField(ObjectIdField())
     
     # Metadata
     created_at = DateTimeField(default=datetime.now)
@@ -123,8 +123,11 @@ class User(Document):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None
         }
-        if include_sensitive:
-            data['assigned_cameras'] = [str(cam.id) for cam in self.assigned_cameras]
+        if include_sensitive and self.assigned_cameras:
+            try:
+                data['assigned_cameras'] = [str(cam.id) if hasattr(cam, 'id') else str(cam) for cam in self.assigned_cameras]
+            except Exception:
+                data['assigned_cameras'] = []
         return data
 
 

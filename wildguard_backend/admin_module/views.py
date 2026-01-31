@@ -19,7 +19,6 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from detection.models import User, Species, CameraTrap, Detection, EmergencyAlert, SystemMetrics, ActivityLog
 from accounts.auth import require_auth, require_role
-from ml_services import ImageDetector, AudioDetector
 
 
 @require_auth
@@ -42,45 +41,94 @@ def dashboard_view(request):
         detections_today = Detection.objects(created_at__gte=today).count()
         alerts_today = Detection.objects(created_at__gte=today, alert_level__in=['high', 'critical']).count()
         
+        # Count by detected object type
+        # Animals: any wildlife detection
+        animals_detected = Detection.objects(
+            created_at__gte=today, 
+            detected_object__nin=['human', 'person', 'chainsaw', 'gunshot', 'vehicle']
+        ).count()
+        # Human intrusions: humans or suspicious activity
+        human_intrusions = Detection.objects(
+            created_at__gte=today, 
+            detected_object__in=['human', 'person']
+        ).count()
+        
         # Unresolved emergencies
         unresolved_emergencies = EmergencyAlert.objects(is_resolved=False).count()
         
-        # Recent detections
+        # Recent activity (last 10 detections/alerts as activity feed)
         recent_detections = Detection.objects.order_by('-created_at')[:10]
+        recent_activity = []
+        for det in recent_detections:
+            activity_type = 'alert' if det.alert_level in ['high', 'critical'] else 'detection'
+            severity = det.alert_level if det.alert_level else 'info'
+            message = f"{det.detected_object} detected" if det.detected_object else "Unknown detection"
+            if det.camera_trap:
+                message += f" at camera {det.camera_trap.name}"
+            
+            recent_activity.append({
+                'id': str(det.id),
+                'type': activity_type,
+                'message': message,
+                'time': det.created_at.strftime('%H:%M:%S') if det.created_at else 'Unknown',
+                'severity': severity
+            })
         
+        # Trend data (last 7 days)
+        trend_data = []
+        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        for i in range(6, -1, -1):
+            day_start = (datetime.now() - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            
+            day_animals = Detection.objects(
+                created_at__gte=day_start, 
+                created_at__lt=day_end, 
+                detected_object__nin=['human', 'person', 'chainsaw', 'gunshot', 'vehicle']
+            ).count()
+            day_humans = Detection.objects(
+                created_at__gte=day_start, 
+                created_at__lt=day_end, 
+                detected_object__in=['human', 'person']
+            ).count()
+            day_suspicious = Detection.objects(
+                created_at__gte=day_start, 
+                created_at__lt=day_end, 
+                alert_level__in=['high', 'critical']
+            ).count()
+            
+            trend_data.append({
+                'day': days[day_start.weekday()],
+                'animals': day_animals,
+                'humans': day_humans,
+                'suspicious': day_suspicious
+            })
+        
+        # Dashboard data matching frontend expectations
         dashboard_data = {
             'timestamp': datetime.now().isoformat(),
+            'total_detections': detections_today,
+            'animals_detected': animals_detected,
+            'human_intrusions': human_intrusions,
+            'alerts_today': alerts_today,
+            'active_cameras': online_cameras,
+            'trend_data': trend_data,
+            'recent_activity': recent_activity,
             'camera_status': {
                 'total': total_cameras,
                 'active': active_cameras,
                 'online': online_cameras,
                 'health_percentage': round((online_cameras / total_cameras * 100) if total_cameras > 0 else 0, 1)
             },
-            'detection_metrics': {
-                'detections_today': detections_today,
-                'alerts_today': alerts_today,
-                'high_priority_alerts': Detection.objects(created_at__gte=today, alert_level='critical').count()
-            },
             'emergency_status': {
                 'unresolved': unresolved_emergencies,
                 'critical_pending': EmergencyAlert.objects(is_resolved=False, severity='critical').count()
-            },
-            'recent_detections': [
-                {
-                    'id': str(det.id),
-                    'object': det.detected_object,
-                    'confidence': det.confidence,
-                    'alert_level': det.alert_level,
-                    'timestamp': det.created_at.isoformat() if det.created_at else None,
-                    'camera_id': str(det.camera_trap.id)
-                }
-                for det in recent_detections
-            ]
+            }
         }
         
         return JsonResponse({
             'success': True,
-            'data': dashboard_data
+            'dashboard': dashboard_data
         }, status=200)
         
     except Exception as e:

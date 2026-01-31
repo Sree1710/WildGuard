@@ -348,7 +348,7 @@ def train_model(model, train_generator, val_generator):
     )
     
     model_checkpoint = ModelCheckpoint(
-        MODELS_PATH / 'best_image_model.h5',
+        str(MODELS_PATH / 'best_image_model.h5'),
         monitor='val_accuracy',
         save_best_only=True,
         verbose=1

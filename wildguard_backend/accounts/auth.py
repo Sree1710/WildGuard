@@ -11,6 +11,7 @@ import os
 from datetime import datetime, timedelta
 from functools import wraps
 from typing import Dict, Tuple, Optional
+from django.http import JsonResponse
 
 class JWTHandler:
     """Handle JWT token generation and validation."""
@@ -125,20 +126,20 @@ def require_auth(func):
         auth_header = request.META.get('HTTP_AUTHORIZATION', '')
         
         if not auth_header.startswith('Bearer '):
-            return {
+            return JsonResponse({
                 'success': False,
                 'error': 'Missing or invalid Authorization header'
-            }, 401
+            }, status=401)
         
         token = auth_header.split(' ')[1]
         
         is_valid, payload = JWTHandler.verify_token(token)
         
         if not is_valid:
-            return {
+            return JsonResponse({
                 'success': False,
                 'error': payload.get('error', 'Invalid token')
-            }, 401
+            }, status=401)
         
         # Attach user info to request
         request.user_id = payload.get('user_id')
@@ -158,16 +159,16 @@ def require_role(required_role):
         @wraps(func)
         def wrapper(request, *args, **kwargs):
             if not hasattr(request, 'user_role'):
-                return {
+                return JsonResponse({
                     'success': False,
                     'error': 'Authentication required'
-                }, 401
+                }, status=401)
             
             if request.user_role != required_role and required_role != 'any':
-                return {
+                return JsonResponse({
                     'success': False,
                     'error': f'Requires {required_role} role'
-                }, 403
+                }, status=403)
             
             return func(request, *args, **kwargs)
         

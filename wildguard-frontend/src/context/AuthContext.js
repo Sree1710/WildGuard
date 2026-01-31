@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import api from '../services/api';
 
 // Create Authentication Context
 const AuthContext = createContext(null);
@@ -6,7 +7,7 @@ const AuthContext = createContext(null);
 /**
  * Authentication Provider Component
  * Manages user authentication state and provides login/logout functions
- * In a real application, this would integrate with a backend API
+ * Integrates with backend API for real authentication
  */
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -14,52 +15,55 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in (from localStorage)
   useEffect(() => {
-    const storedUser = localStorage.getItem('wildguard_user');
-    if (storedUser) {
+    const storedUser = localStorage.getItem('user');
+    const token = localStorage.getItem('access_token');
+    if (storedUser && token) {
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
   }, []);
 
   /**
-   * Login function - authenticates user
+   * Login function - authenticates user with backend API
    * @param {string} username 
    * @param {string} password 
    * @returns {object} { success: boolean, message: string }
    */
-  const login = (username, password) => {
-    // Mock authentication - in production, this would call an API
-    const mockUsers = {
-      admin: { username: 'admin', password: 'admin123', role: 'admin', name: 'Admin User' },
-      user: { username: 'user', password: 'user123', role: 'user', name: 'Field Ranger' },
-    };
-
-    const foundUser = Object.values(mockUsers).find(
-      u => u.username === username && u.password === password
-    );
-
-    if (foundUser) {
-      const userData = {
-        username: foundUser.username,
-        role: foundUser.role,
-        name: foundUser.name,
-      };
+  const login = async (username, password) => {
+    try {
+      const response = await api.login(username, password);
       
-      setUser(userData);
-      localStorage.setItem('wildguard_user', JSON.stringify(userData));
-      
-      return { success: true, message: 'Login successful' };
+      if (response.success) {
+        const userData = {
+          id: response.user.id,
+          username: response.user.username,
+          role: response.user.role,
+          name: response.user.name,
+          email: response.user.email,
+        };
+        
+        setUser(userData);
+        return { success: true, message: 'Login successful' };
+      }
+
+      return { success: false, message: response.error || 'Login failed' };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, message: error.message || 'Connection error. Please try again.' };
     }
-
-    return { success: false, message: 'Invalid username or password' };
   };
 
   /**
    * Logout function - clears user session
    */
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('wildguard_user');
+  const logout = async () => {
+    try {
+      await api.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setUser(null);
+    }
   };
 
   /**

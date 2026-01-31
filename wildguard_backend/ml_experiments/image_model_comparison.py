@@ -108,62 +108,80 @@ class ResNet:
         }
 
 
-class YOLO:
+class YOLOv8:
     """
-    YOLO (You Only Look Once) - Real-time object detection model.
+    YOLOv8 (You Only Look Once v8) - State-of-the-art object detection model.
     
-    WHY YOLO IS CHOSEN FOR WILDGUARD:
-    ===================================
+    WHY YOLOv8 IS CHOSEN FOR WILDGUARD:
+    ====================================
     
     1. REAL-TIME PERFORMANCE:
-       - Inference: 50-80ms on GPU, 200-250ms on CPU
-       - Processes 15-30 frames/second (sufficient for wildlife monitoring)
+       - Inference: 1-4ms on GPU, 80-150ms on CPU
+       - Processes 30-60+ frames/second on GPU
+       - Fastest YOLO version yet
     
     2. MULTI-OBJECT DETECTION:
        - Detects multiple animals in one image
        - Detects both animals AND humans (crucial for anti-poaching)
        - Single pass detection (efficient)
+       - Anchor-free detection head (improved accuracy)
     
     3. FOREST MONITORING SUITABILITY:
        - Works well with challenging lighting (low light, shadows)
        - Robust to occlusion (animals hidden behind trees)
        - Handles various scales (small and large animals)
+       - Improved small object detection vs YOLOv5
     
     4. EDGE DEPLOYMENT:
-       - YOLOv5 Nano: 2.5MB (fits on edge devices)
-       - YOLOv5 Small: 7.5MB (good balance)
-       - Runs on edge TPUs, ARM processors
+       - YOLOv8n (Nano): 6MB (fits on edge devices)
+       - YOLOv8s (Small): 22MB (good balance)
+       - YOLOv8m (Medium): 52MB (higher accuracy)
+       - Runs on edge TPUs, ARM processors, Jetson Nano
+       - Export to ONNX, TensorRT, CoreML
     
     5. BOUNDING BOX + CONFIDENCE:
        - Returns location of animals (not just classification)
        - Confidence scores enable threshold filtering
        - Metadata for evidence storage
     
+    6. YOLOv8 IMPROVEMENTS OVER YOLOv5:
+       - New backbone architecture (C2f modules)
+       - Anchor-free detection (better generalization)
+       - Decoupled head (separate cls and reg branches)
+       - Better accuracy-speed tradeoff
+       - Native support for classification, detection, segmentation
+    
     Academic Justification:
-    - Most suitable for real-time forest monitoring
-    - Handles multi-species detection
-    - Efficient for continuous camera trap operation
+    - State-of-the-art for real-time forest monitoring
+    - Handles multi-species detection efficiently
+    - Optimal for continuous camera trap operation
+    - Easy deployment with ultralytics library
     """
     def __init__(self, variant="small"):
-        self.model_name = f"YOLO_v5_{variant}"
+        self.model_name = f"YOLOv8_{variant}"
         self.variant = variant
-        self.model_size_mb = {"nano": 2.5, "small": 7.5, "medium": 21}.get(variant, 7.5)
+        # YOLOv8 model sizes
+        self.model_size_mb = {"nano": 6, "small": 22, "medium": 52, "large": 87, "xlarge": 136}.get(variant, 22)
+        self.parameters = {"nano": 3_200_000, "small": 11_200_000, "medium": 25_900_000}.get(variant, 11_200_000)
         
     def predict(self, image_data):
         """
         Mock prediction returning multiple detections with bounding boxes.
-        Real implementation would use yolov5 library.
+        Real implementation would use ultralytics library:
+            from ultralytics import YOLO
+            model = YOLO('yolov8s.pt')
+            results = model.predict(image)
         """
-        time.sleep(0.12)  # ~120ms per image on CPU
+        time.sleep(0.10)  # ~100ms per image on CPU (faster than YOLOv5)
         num_detections = np.random.randint(0, 3)
         
         detections = []
-        labels = ["lion", "elephant", "zebra", "human", "poacher", "vehicle"]
+        labels = ["animal", "human"]
         
         for _ in range(num_detections):
             detections.append({
                 "label": np.random.choice(labels),
-                "confidence": float(np.random.uniform(0.80, 0.95)),
+                "confidence": float(np.random.uniform(0.82, 0.96)),
                 "bbox": {
                     "x": float(np.random.uniform(0, 1)),
                     "y": float(np.random.uniform(0, 1)),
@@ -174,7 +192,7 @@ class YOLO:
         
         return {
             "detections": detections,
-            "inference_time_ms": 120,
+            "inference_time_ms": 100,
             "num_objects_detected": num_detections
         }
 
@@ -191,7 +209,7 @@ class ImageModelComparison:
             "BasicCNN": BasicCNN(),
             "MobileNet": MobileNet(),
             "ResNet50": ResNet(),
-            "YOLO_v5_small": YOLO(variant="small")
+            "YOLOv8_small": YOLOv8(variant="small")
         }
         self.results = {}
         
@@ -266,7 +284,7 @@ class ImageModelComparison:
             "BasicCNN": 8,
             "MobileNet": 9.5,
             "ResNet50": 6,
-            "YOLO_v5_small": 9
+            "YOLOv8_small": 9.5  # YOLOv8 is more efficient than YOLOv5
         }
         efficiency_score = efficiency_scores.get(model_name, 7)
         

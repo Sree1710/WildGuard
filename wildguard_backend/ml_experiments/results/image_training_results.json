@@ -1,0 +1,50 @@
+{
+    "experiment_name": "Image Classification - Wildlife Detection",
+    "date": "2026-01-29 12:18:11",
+    "approach": "Transfer Learning with MobileNetV2",
+    "dataset": {
+        "source": "Kaggle (Manual Download)",
+        "categories": [
+            "animal",
+            "human"
+        ],
+        "image_counts": {
+            "animal": 151,
+            "human": 113
+        },
+        "total_images": 264
+    },
+    "model_architecture": {
+        "base_model": "MobileNetV2 (ImageNet pre-trained)",
+        "input_size": "224x224",
+        "trainable_layers": "Classification head only",
+        "frozen_layers": "All convolutional layers"
+    },
+    "training_parameters": {
+        "epochs": 20,
+        "batch_size": 32,
+        "learning_rate": 0.0001,
+        "optimizer": "Adam",
+        "loss_function": "categorical_crossentropy"
+    },
+    "data_augmentation": {
+        "rotation_range": 20,
+        "width_shift": 0.2,
+        "height_shift": 0.2,
+        "horizontal_flip": true,
+        "zoom_range": 0.2
+    },
+    "results": {
+        "final_training_accuracy": 0.9528301954269409,
+        "final_validation_accuracy": 0.8653846383094788,
+        "final_training_loss": 0.13466815650463104,
+        "final_validation_loss": 0.28482741117477417,
+        "best_validation_accuracy": 0.8653846383094788
+    },
+    "transfer_learning_benefits": {
+        "training_time": "Reduced from days to hours",
+        "data_requirement": "Works with hundreds of images instead of millions",
+        "accuracy": "Higher than training from scratch with limited data",
+        "deployment": "MobileNet is optimized for edge devices"
+    }
+}

@@ -28,6 +28,9 @@ INSTALLED_APPS = [
     'accounts'
 ]
 
+# URL Configuration
+ROOT_URLCONF = 'config.urls'
+
 # Middleware
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -44,17 +47,22 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# MongoDB Configuration
-MONGO_HOST = os.environ.get('MONGODB_HOST', 'mongodb://localhost:27017')
-MONGO_DB = os.environ.get('MONGODB_DB', 'wildguard')
+# MongoDB Configuration - Using MongoDB Atlas
+MONGO_HOST = os.environ.get('MONGODB_HOST', 'mongodb+srv://sreelekshmisl1710:dharithri@cluster0.1qi60nq.mongodb.net/Wildguard?retryWrites=true&w=majority&appName=Cluster0')
+MONGO_DB = os.environ.get('MONGODB_DB', 'Wildguard')
 
 # MongoDB Connection
 import mongoengine as me  # type: ignore
+from pymongo import MongoClient
+import certifi
+
+# Use certifi for SSL certificates with Atlas
+me.disconnect_all()  # Clear any existing connections
 me.connect(
     db=MONGO_DB,
     host=MONGO_HOST,
-    connect=False,
-    retryWrites=False
+    alias='default',
+    tlsCAFile=certifi.where()
 )
 
 # REST Framework
