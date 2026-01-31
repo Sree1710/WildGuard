@@ -404,3 +404,19 @@ Watching for file changes with StatReloader
 "GET /api/detections/?limit=50 HTTP/1.1" 200 25107
 Watching for file changes with StatReloader
 Watching for file changes with StatReloader
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2244
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2244
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25107
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25107
+"GET /media/detections/20260131181355_pexels_animal_11499392.jpg HTTP/1.1" 200 21312
+"GET /media/detections/20260131181356_humanintrusion9.jpg HTTP/1.1" 200 92501
+"GET /media/detections/20260131181358_1-22882-A-44.wav HTTP/1.1" 200 441044
+"GET /media/detections/20260131181358_desert-eagle_001_deagle_0m_center_1776.wav HTTP/1.1" 200 44144
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2244
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2244
