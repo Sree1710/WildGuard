@@ -1302,8 +1302,6 @@ cd wildguard-project
 
 #### 2. Create Virtual Environment
 ```bash
-cd wildguard_backend
-
 # Windows
 python -m venv .venv
 .venv\Scripts\activate
@@ -1460,10 +1458,12 @@ cp trained_models/class_indices.pkl ../ml_services/models/
 
 #### 2. Start Backend
 ```bash
-cd wildguard_backend
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # macOS/Linux
+# Windows
+.venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
 
+cd wildguard_backend
 python manage.py runserver
 ```
 

@@ -402,3 +402,5 @@ Watching for file changes with StatReloader
 "GET /api/detections/?limit=50 HTTP/1.1" 200 25107
 "GET /api/detections/?limit=50 HTTP/1.1" 200 25107
 "GET /api/detections/?limit=50 HTTP/1.1" 200 25107
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
