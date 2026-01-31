@@ -187,3 +187,218 @@ Watching for file changes with StatReloader
 "GET /api/admin/dashboard/ HTTP/1.1" 200 789
 "GET /api/admin/dashboard/ HTTP/1.1" 200 789
 Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+Internal Server Error: /api/admin/species/
+"GET /api/admin/species/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/cameras/
+"GET /api/admin/cameras/ HTTP/1.1" 500 96
+"POST /api/auth/login/ HTTP/1.1" 200 594
+Internal Server Error: /api/user/dashboard/
+"GET /api/user/dashboard/ HTTP/1.1" 500 96
+"GET /api/detections/ HTTP/1.1" 200 79
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+Internal Server Error: /api/admin/species/
+"GET /api/admin/species/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/cameras/
+"GET /api/admin/cameras/ HTTP/1.1" 500 96
+"GET /api/detections/ HTTP/1.1" 200 79
+"GET /api/admin/emergency/ HTTP/1.1" 200 41
+"POST /api/auth/login/ HTTP/1.1" 200 594
+Internal Server Error: /api/user/dashboard/
+"GET /api/user/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/user/alerts/
+"GET /api/user/alerts/ HTTP/1.1" 500 96
+Internal Server Error: /api/user/activity-timeline/
+"GET /api/user/activity-timeline/ HTTP/1.1" 500 96
+Internal Server Error: /api/user/reports/
+"GET /api/user/reports/ HTTP/1.1" 500 96
+"GET /api/user/emergency-info/ HTTP/1.1" 200 176
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+"GET /api/admin/dashboard/ HTTP/1.1" 200 789
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Watching for file changes with StatReloader
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+"OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"POST /api/auth/login/ HTTP/1.1" 200 591
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+"POST /api/auth/login/ HTTP/1.1" 200 591
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Watching for file changes with StatReloader
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 96
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 1636
+Watching for file changes with StatReloader
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 1998
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 1998
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 1998
+Watching for file changes with StatReloader
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 1998
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 1998
+Internal Server Error: /api/admin/dashboard/
+"GET /api/admin/dashboard/ HTTP/1.1" 500 1998
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+D:\WildGuard MCA\wildguard_backend\config\urls.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2221
+D:\WildGuard MCA\wildguard_backend\config\urls.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\models.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\models.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+Internal Server Error: /api/detections/
+"GET /api/detections/?limit=50 HTTP/1.1" 500 96
+Internal Server Error: /api/detections/
+"GET /api/detections/?limit=50 HTTP/1.1" 500 96
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+Internal Server Error: /api/detections/
+"GET /api/detections/?limit=50 HTTP/1.1" 500 96
+Internal Server Error: /api/detections/
+"GET /api/detections/?limit=50 HTTP/1.1" 500 96
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/detections/?limit=1 HTTP/1.1" 200 569
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24655
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24655
+"GET /media/detections/20260131175053_deer6.jpg HTTP/1.1" 200 961267
+"GET /media/detections/20260131175054_lion3.jpg HTTP/1.1" 200 116170
+"GET /media/detections/20260131175054_leopard4.jpg HTTP/1.1" 200 13473
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/detections/?limit=5 HTTP/1.1" 200 2559
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24536
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24536
+"GET /media/detections/20260131180059_pexels_human_10842901.jpg HTTP/1.1" 200 18530
+"GET /media/detections/20260131180057_elephant5.jpg HTTP/1.1" 200 112150
+"GET /media/detections/20260131180056_deer4.jpg HTTP/1.1" 200 2303656
+"GET /media/detections/20260131180058_monkey2.jpg HTTP/1.1" 200 198923
+"GET /media/detections/20260131180058_lion4.jpg HTTP/1.1" 200 1603995
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24891
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/detections/?limit=5 HTTP/1.1" 200 2596
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24891
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24891
+"GET /media/detections/20260131180352_pexels_animal_1054703.jpg HTTP/1.1" 200 24949
+"GET /media/detections/20260131180353_humanintrusion12.jpg HTTP/1.1" 200 256530
+"GET /media/detections/20260131180352_pexels_animal_12367499.jpg HTTP/1.1" 200 16366
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/detections/?limit=10 HTTP/1.1" 200 5020
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/detections/?limit=20 HTTP/1.1" 200 10010
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24954
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24954
+"GET /media/detections/20260131180908_leopard.jpg HTTP/1.1" 200 14662
+"GET /media/detections/20260131180912_daewoo-k2_002_k2_0m_center_0547.wav HTTP/1.1" 200 44144
+"GET /media/detections/20260131180910_humanintrusion8.jpg HTTP/1.1" 200 237189
+"GET /media/detections/20260131180911_pexels_human_13451872.jpg HTTP/1.1" 200 12717
+"GET /media/detections/20260131180909_monkey3.jpg HTTP/1.1" 200 31500
+"GET /media/detections/20260131180909_pexels_animal_10987568.jpg HTTP/1.1" 200 19244
+"GET /api/detections/?limit=50 HTTP/1.1" 200 24954
+"GET /media/detections/20260131180911_pexels_human_13325433.jpg HTTP/1.1" 200 27186
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25107
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25107
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25107

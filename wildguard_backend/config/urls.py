@@ -25,9 +25,6 @@ urlpatterns = [
     
     # Admin APIs
     path('api/admin/dashboard/', admin_views.dashboard_view, name='admin_dashboard'),
-    path('api/admin/species/', admin_views.species_list, name='species_list'),
-    path('api/admin/species/create/', admin_views.create_species, name='create_species'),
-    path('api/admin/species/<str:species_id>/', admin_views.update_species, name='update_species'),
     path('api/admin/cameras/', admin_views.camera_list, name='camera_list'),
     path('api/admin/cameras/create/', admin_views.create_camera, name='create_camera'),
     path('api/admin/cameras/<str:camera_id>/', admin_views.update_camera, name='update_camera'),
@@ -43,3 +40,10 @@ urlpatterns = [
     path('api/user/emergency-info/', user_views.emergency_info, name='emergency_info'),
     path('api/user/dashboard/', user_views.user_dashboard, name='user_dashboard'),
 ]
+
+# Serve media files in development
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

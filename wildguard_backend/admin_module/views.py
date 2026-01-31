@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from detection.models import User, Species, CameraTrap, Detection, EmergencyAlert, SystemMetrics, ActivityLog
+from detection.models import User, CameraTrap, Detection, EmergencyAlert, SystemMetrics, ActivityLog
 from accounts.auth import require_auth, require_role
 
 
@@ -57,22 +57,39 @@ def dashboard_view(request):
         unresolved_emergencies = EmergencyAlert.objects(is_resolved=False).count()
         
         # Recent activity (last 10 detections/alerts as activity feed)
-        recent_detections = Detection.objects.order_by('-created_at')[:10]
+        # Note: Convert to list first to avoid MongoEngine thread-local context issues
+        recent_detections = list(Detection.objects.order_by('-created_at').limit(10).as_pymongo())
         recent_activity = []
+        
+        # Get camera names for lookup using raw pymongo to avoid thread-local issues
+        camera_lookup = {str(c['_id']): c.get('name', 'Unknown') for c in CameraTrap.objects.as_pymongo()}
+        
         for det in recent_detections:
-            activity_type = 'alert' if det.alert_level in ['high', 'critical'] else 'detection'
-            severity = det.alert_level if det.alert_level else 'info'
-            message = f"{det.detected_object} detected" if det.detected_object else "Unknown detection"
-            if det.camera_trap:
-                message += f" at camera {det.camera_trap.name}"
-            
-            recent_activity.append({
-                'id': str(det.id),
-                'type': activity_type,
-                'message': message,
-                'time': det.created_at.strftime('%H:%M:%S') if det.created_at else 'Unknown',
-                'severity': severity
-            })
+            try:
+                alert_level = det.get('alert_level', 'none')
+                activity_type = 'alert' if alert_level in ['high', 'critical'] else 'detection'
+                severity = alert_level if alert_level else 'info'
+                detected_obj = det.get('detected_object', 'Unknown')
+                message = f"{detected_obj} detected"
+                
+                # Get camera name from lookup
+                camera_trap_id = det.get('camera_trap')
+                if camera_trap_id:
+                    cam_name = camera_lookup.get(str(camera_trap_id), 'Unknown')
+                    message += f" at camera {cam_name}"
+                
+                created_at = det.get('created_at')
+                time_str = created_at.strftime('%H:%M:%S') if created_at else 'Unknown'
+                
+                recent_activity.append({
+                    'id': str(det.get('_id', '')),
+                    'type': activity_type,
+                    'message': message,
+                    'time': time_str,
+                    'severity': severity
+                })
+            except Exception:
+                continue
         
         # Trend data (last 7 days)
         trend_data = []
@@ -132,138 +149,17 @@ def dashboard_view(request):
         }, status=200)
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Dashboard Error: {error_details}")
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'traceback': error_details
         }, status=500)
 
 
-@require_auth
-@require_role('admin')
-@require_http_methods(["GET"])
-def species_list(request):
-    """
-    List all species.
-    Supports filtering by conservation status.
-    """
-    try:
-        conservation_status = request.GET.get('status')
-        endangered_only = request.GET.get('endangered') == 'true'
-        
-        query = Species.objects.all()
-        
-        if conservation_status:
-            query = query.filter(conservation_status=conservation_status)
-        if endangered_only:
-            query = query.filter(is_endangered=True)
-        
-        species_list_data = [s.to_dict() for s in query]
-        
-        return JsonResponse({
-            'success': True,
-            'count': len(species_list_data),
-            'data': species_list_data
-        }, status=200)
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
-
-@csrf_exempt
-@require_auth
-@require_role('admin')
-@require_http_methods(["POST"])
-def create_species(request):
-    """
-    Create new species entry.
-    
-    Request body:
-    {
-        "name": "African Elephant",
-        "scientific_name": "Loxodonta africana",
-        "conservation_status": "Vulnerable",
-        "habitat": "Savanna, forest",
-        "is_endangered": true,
-        "poaching_risk_level": "high"
-    }
-    """
-    try:
-        data = json.loads(request.body)
-        
-        species = Species(
-            name=data.get('name'),
-            scientific_name=data.get('scientific_name'),
-            conservation_status=data.get('conservation_status', 'Least Concern'),
-            habitat=data.get('habitat'),
-            description=data.get('description'),
-            is_endangered=data.get('is_endangered', False),
-            poaching_risk_level=data.get('poaching_risk_level', 'low')
-        )
-        
-        species.save()
-        
-        # Log activity
-        ActivityLog(
-            user=User.objects.get(id=request.user_id),
-            action='created_species',
-            entity_type='Species',
-            entity_id=str(species.id),
-            details={'name': species.name}
-        ).save()
-        
-        return JsonResponse({
-            'success': True,
-            'species': species.to_dict()
-        }, status=201)
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
-
-
-@csrf_exempt
-@require_auth
-@require_role('admin')
-@require_http_methods(["PUT"])
-def update_species(request, species_id):
-    """
-    Update species information.
-    """
-    try:
-        species = Species.objects.get(id=species_id)
-        data = json.loads(request.body)
-        
-        # Update fields
-        species.name = data.get('name', species.name)
-        species.scientific_name = data.get('scientific_name', species.scientific_name)
-        species.conservation_status = data.get('conservation_status', species.conservation_status)
-        species.habitat = data.get('habitat', species.habitat)
-        species.is_endangered = data.get('is_endangered', species.is_endangered)
-        species.poaching_risk_level = data.get('poaching_risk_level', species.poaching_risk_level)
-        species.updated_at = datetime.now()
-        
-        species.save()
-        
-        return JsonResponse({
-            'success': True,
-            'species': species.to_dict()
-        }, status=200)
-        
-    except Species.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Species not found'
-        }, status=404)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
 
 @require_auth
