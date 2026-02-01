@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'rest_framework',
     'corsheaders',
-    'detection',
+    'detection.apps.DetectionConfig',  # Use AppConfig for auto-detection generator
     'admin_module',
     'user_module',
     'accounts'
@@ -115,3 +115,7 @@ LOGGING = {
 # Create logs directory
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
 os.makedirs(MEDIA_ROOT, exist_ok=True)
+
+# Auto Detection Generator Configuration
+# Set to False to disable automatic detection generation
+AUTO_GENERATE_DETECTIONS = os.environ.get('AUTO_GENERATE_DETECTIONS', 'True') == 'True'

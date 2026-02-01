@@ -1,2 +1,69 @@
 Watching for file changes with StatReloader
 "GET /api/admin/dashboard/ HTTP/1.1" 200 2244
+Watching for file changes with StatReloader
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 5078
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2243
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+D:\WildGuard MCA\wildguard_backend\config\settings.py changed, reloading.
+Detection generator started
+Background detection generator thread started
+Watching for file changes with StatReloader
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+D:\WildGuard MCA\wildguard_backend\detection\apps.py changed, reloading.
+Detection generator started
+Background detection generator thread started
+Watching for file changes with StatReloader
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+Detection generator started
+Background detection generator thread started
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+D:\WildGuard MCA\wildguard_backend\detection\detection_generator.py changed, reloading.
+Detection generator started
+Background detection generator thread started
+Watching for file changes with StatReloader
+MongoDB connection established in generator thread
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+Detection generator started
+Background detection generator thread started
+Watching for file changes with StatReloader
+MongoDB connection established in generator thread
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+Error in detection generator: '_thread._local' object has no attribute 'no_dereferencing_class'
+D:\WildGuard MCA\wildguard_backend\detection\detection_generator.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2274
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2274
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2274
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2274
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2274
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2274

@@ -97,10 +97,13 @@ def generate_detections():
     # Only use species we have images for to ensure accuracy
     animal_types = ['bear', 'deer', 'elephant', 'fox', 'leopard', 'lion', 'monkey', 'tiger']
     
-    for i, img in enumerate(animal_images[:50]):  # Limit to 50
+    # Use more images and distribute evenly across 7 days
+    for i, img in enumerate(animal_images[:70]):  # Use 70 images = 10 per day
         camera = random.choice(cameras)
-        days_ago = random.randint(0, 6)
-        hours_ago = random.randint(0, 23)
+        # Even distribution: round-robin across days
+        days_ago = i % 7
+        # Varied time slots throughout the day
+        hours_ago = (i * 2) % 24
         detection_time = datetime.now() - timedelta(days=days_ago, hours=hours_ago)
         
         # Extract label from filename
@@ -132,10 +135,13 @@ def generate_detections():
         detections_created += 1
 
     # Human detections (some as alerts)
-    for i, img in enumerate(human_images[:30]):  # Limit to 30
+    # Distribute 42 human images evenly = 6 per day
+    for i, img in enumerate(human_images[:42]):
         camera = random.choice(cameras)
-        days_ago = random.randint(0, 6)
-        hours_ago = random.randint(0, 23)
+        # Even distribution across days
+        days_ago = i % 7
+        # Varied time slots (offset from animals)
+        hours_ago = ((i * 3) + 1) % 24
         detection_time = datetime.now() - timedelta(days=days_ago, hours=hours_ago)
         
         confidence = random.uniform(0.80, 0.95)
@@ -197,11 +203,12 @@ def generate_detections():
         shutil.copy2(audio_path, dest_path)
         return f"http://localhost:8000/media/detections/{filename}"
 
-    # Gunshot detections
-    for i in range(10):
+    # Gunshot detections - 14 = 2 per day
+    for i in range(14):
         camera = random.choice(cameras)
-        days_ago = random.randint(0, 6)
-        hours_ago = random.randint(0, 23)
+        # Even distribution across days
+        days_ago = i % 7
+        hours_ago = (i * 4) % 24
         detection_time = datetime.now() - timedelta(days=days_ago, hours=hours_ago)
         
         # Select audio file
@@ -236,11 +243,12 @@ def generate_detections():
         alert.save()
         alerts_created += 1
         
-    # Human audio detections (voices, footsteps)
-    for i in range(15):
+    # Human audio detections (voices, footsteps) - 21 = 3 per day
+    for i in range(21):
         camera = random.choice(cameras)
-        days_ago = random.randint(0, 6)
-        hours_ago = random.randint(0, 23)
+        # Even distribution across days
+        days_ago = i % 7
+        hours_ago = ((i * 5) + 2) % 24
         detection_time = datetime.now() - timedelta(days=days_ago, hours=hours_ago)
         
         audio_file = random.choice(human_audio) if human_audio else None
