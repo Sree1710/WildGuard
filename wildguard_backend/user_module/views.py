@@ -25,44 +25,61 @@ from accounts.auth import require_auth, require_role
 @require_http_methods(["GET"])
 def user_alerts(request):
     """
-    Get alerts for the user's assigned cameras.
+    Get alerts for cameras.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     
     Query parameters:
-    - level: Filter by alert level (high, medium, critical)
-    - resolved: Filter by resolution status (true/false)
+    - level/severity: Filter by alert level (high, medium, critical)
     - days: Number of days to look back (default: 7)
     """
     try:
-        current_user = User.objects.get(id=request.user_id)
+        from pymongo import MongoClient
+        from bson import ObjectId
+        import certifi
+        from django.conf import settings
         
-        # Get user's assigned cameras (if user role)
-        if current_user.role == 'user':
-            camera_ids = [str(cam.id) for cam in current_user.assigned_cameras]
-            if not camera_ids:
-                return JsonResponse({
-                    'success': True,
-                    'alerts': [],
-                    'message': 'No cameras assigned'
-                }, status=200)
-        else:
-            # Admin sees all
-            camera_ids = [str(cam.id) for cam in CameraTrap.objects.all()]
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
         
-        # Filter alerts
+        # Get all active cameras
+        all_cameras = list(db.camera_traps.find({'is_active': True}))
+        camera_ids = [cam['_id'] for cam in all_cameras]
+        camera_names = {str(cam['_id']): cam.get('name', 'Unknown') for cam in all_cameras}
+        
+        # Filter by date
         days = int(request.GET.get('days', 7))
         start_date = datetime.now() - timedelta(days=days)
         
-        query = Detection.objects(
-            created_at__gte=start_date,
-            camera_trap__id__in=camera_ids,
-            alert_level__in=['medium', 'high', 'critical']
-        ).order_by('-created_at')
+        # Build query
+        query = {
+            'created_at': {'$gte': start_date},
+            'camera_trap': {'$in': camera_ids},
+            'alert_level': {'$in': ['medium', 'high', 'critical']}
+        }
         
-        alert_level_filter = request.GET.get('level')
-        if alert_level_filter:
-            query = query.filter(alert_level=alert_level_filter)
+        # Filter by severity/level if provided
+        severity_filter = request.GET.get('severity') or request.GET.get('level')
+        if severity_filter:
+            query['alert_level'] = severity_filter
         
-        alerts = [det.to_dict() for det in query]
+        # Get detections as alerts
+        alerts_raw = list(db.detections.find(query).sort('created_at', -1).limit(50))
+        
+        alerts = []
+        for det in alerts_raw:
+            cam_id = str(det.get('camera_trap', ''))
+            alerts.append({
+                'id': str(det.get('_id', '')),
+                'type': det.get('detected_object', 'unknown'),
+                'severity': det.get('alert_level', 'medium'),
+                'location': camera_names.get(cam_id, 'Unknown'),
+                'description': f"{det.get('detected_object', 'Unknown')} detected",
+                'timestamp': det.get('created_at').strftime('%Y-%m-%d %H:%M') if det.get('created_at') else None,
+                'camera_name': camera_names.get(cam_id, 'Unknown'),
+                'confidence': det.get('confidence', 0)
+            })
+        
+        client.close()
         
         return JsonResponse({
             'success': True,
@@ -71,6 +88,8 @@ def user_alerts(request):
         }, status=200)
         
     except Exception as e:
+        import traceback
+        print(f"User alerts error: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)
@@ -303,52 +322,106 @@ def emergency_info(request):
 @require_http_methods(["GET"])
 def user_dashboard(request):
     """
-    User dashboard showing assigned cameras and recent activity.
+    User dashboard showing cameras and recent activity.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     """
     try:
-        current_user = User.objects.get(id=request.user_id)
+        from pymongo import MongoClient
+        from bson import ObjectId
+        import certifi
+        from django.conf import settings
         
-        # Get assigned cameras
-        assigned_cameras = current_user.assigned_cameras if current_user.assigned_cameras else []
+        # Get raw pymongo connection
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
         
-        # Recent detections on assigned cameras
-        camera_ids = [cam.id for cam in assigned_cameras]
-        recent_detections = Detection.objects(
-            camera_trap__id__in=camera_ids
-        ).order_by('-created_at')[:10]
+        # Get user document
+        try:
+            user_id = ObjectId(request.user_id)
+        except:
+            user_id = request.user_id
+            
+        user_doc = db.users.find_one({'_id': user_id})
+        if not user_doc:
+            client.close()
+            return JsonResponse({
+                'success': False,
+                'error': 'User not found'
+            }, status=404)
         
-        # Statistics
+        # Get all active cameras
+        all_cameras = list(db.camera_traps.find({'is_active': True}))
+        camera_ids = [cam['_id'] for cam in all_cameras]
+        cameras_count = len(all_cameras)
+        
+        # Camera name lookup
+        camera_names = {str(cam['_id']): cam.get('name', 'Unknown') for cam in all_cameras}
+        
+        # Statistics for today
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        detections_today = Detection.objects(
-            camera_trap__id__in=camera_ids,
-            created_at__gte=today
-        ).count()
         
-        alerts_today = Detection.objects(
-            camera_trap__id__in=camera_ids,
-            created_at__gte=today,
-            alert_level__in=['high', 'critical']
-        ).count()
+        detections_today = db.detections.count_documents({
+            'camera_trap': {'$in': camera_ids},
+            'created_at': {'$gte': today}
+        })
+        
+        alerts_today = db.detections.count_documents({
+            'camera_trap': {'$in': camera_ids},
+            'created_at': {'$gte': today},
+            'alert_level': {'$in': ['high', 'critical']}
+        })
+        
+        animals_today = db.detections.count_documents({
+            'camera_trap': {'$in': camera_ids},
+            'created_at': {'$gte': today},
+            'detected_object': {'$nin': ['human', 'person', 'chainsaw', 'gunshot', 'vehicle', 'human_activity']}
+        })
+        
+        humans_today = db.detections.count_documents({
+            'camera_trap': {'$in': camera_ids},
+            'created_at': {'$gte': today},
+            'detected_object': {'$in': ['human', 'person', 'human_activity']}
+        })
+        
+        # Recent detections
+        recent_detections_raw = list(db.detections.find(
+            {'camera_trap': {'$in': camera_ids}}
+        ).sort('created_at', -1).limit(10))
+        
+        recent_detections = []
+        for det in recent_detections_raw:
+            cam_id = str(det.get('camera_trap', ''))
+            recent_detections.append({
+                'id': str(det.get('_id', '')),
+                'object': det.get('detected_object', 'unknown'),
+                'confidence': det.get('confidence', 0),
+                'alert_level': det.get('alert_level', 'low'),
+                'timestamp': det.get('created_at').isoformat() if det.get('created_at') else None,
+                'camera_name': camera_names.get(cam_id, 'Unknown')
+            })
+        
+        # Build user dict
+        user_info = {
+            'id': str(user_doc.get('_id', '')),
+            'username': user_doc.get('username', ''),
+            'email': user_doc.get('email', ''),
+            'full_name': user_doc.get('full_name', ''),
+            'role': user_doc.get('role', 'user')
+        }
         
         dashboard = {
-            'user': current_user.to_dict(),
-            'assigned_cameras': len(assigned_cameras),
+            'user': user_info,
+            'assigned_cameras': cameras_count,
             'stats_today': {
                 'detections': detections_today,
-                'alerts': alerts_today
+                'alerts': alerts_today,
+                'animals': animals_today,
+                'humans': humans_today
             },
-            'recent_detections': [
-                {
-                    'id': str(det.id),
-                    'object': det.detected_object,
-                    'confidence': det.confidence,
-                    'alert_level': det.alert_level,
-                    'timestamp': det.created_at.isoformat() if det.created_at else None,
-                    'camera_name': det.camera_trap.name
-                }
-                for det in recent_detections
-            ]
+            'recent_detections': recent_detections
         }
+        
+        client.close()
         
         return JsonResponse({
             'success': True,
@@ -356,6 +429,8 @@ def user_dashboard(request):
         }, status=200)
         
     except Exception as e:
+        import traceback
+        print(f"User dashboard error: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)
