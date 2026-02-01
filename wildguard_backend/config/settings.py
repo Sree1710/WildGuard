@@ -11,6 +11,10 @@ from datetime import timedelta
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
+
 # Security
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'wildguard-insecure-key-change-in-production')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
@@ -47,9 +51,16 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# MongoDB Configuration - Using MongoDB Atlas
-MONGO_HOST = os.environ.get('MONGODB_HOST', 'mongodb+srv://sreelekshmisl1710:dharithri@cluster0.1qi60nq.mongodb.net/Wildguard?retryWrites=true&w=majority&appName=Cluster0')
+# MongoDB Configuration - MUST be set via environment variable
+# NEVER hardcode credentials here!
+MONGO_HOST = os.environ.get('MONGODB_HOST')
 MONGO_DB = os.environ.get('MONGODB_DB', 'Wildguard')
+
+if not MONGO_HOST:
+    raise ValueError(
+        "MONGODB_HOST environment variable is required. "
+        "Set it in .env file or export it before running the server."
+    )
 
 # MongoDB Connection
 import mongoengine as me  # type: ignore
