@@ -67,3 +67,4 @@ Watching for file changes with StatReloader
 "GET /api/admin/dashboard/ HTTP/1.1" 200 2274
 "GET /api/admin/dashboard/ HTTP/1.1" 200 2274
 "GET /api/admin/dashboard/ HTTP/1.1" 200 2274
+Watching for file changes with StatReloader
