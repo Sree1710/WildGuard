@@ -134,3 +134,12 @@ Internal Server Error: /api/user/alerts/
 "GET /api/user/alerts/?severity=critical HTTP/1.1" 500 96
 D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
 Watching for file changes with StatReloader
+"GET /api/user/dashboard/ HTTP/1.1" 200 2121
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 3459
+"GET /api/user/dashboard/ HTTP/1.1" 200 2121
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 3459
+"GET /api/user/dashboard/ HTTP/1.1" 200 2121
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 3459
+"GET /api/user/dashboard/ HTTP/1.1" 200 2121
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 3459
+"POST /api/auth/logout/ HTTP/1.1" 200 55
