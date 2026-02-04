@@ -6,6 +6,16 @@ Create sample data for testing and demonstration.
 Run this after server startup to populate the database.
 """
 
+# Initialize Django settings first
+import os
+import sys
+import django
+
+# Add project to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
+
 from detection.models import User, Species, CameraTrap
 import hashlib
 from datetime import datetime

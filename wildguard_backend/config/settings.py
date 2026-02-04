@@ -11,6 +11,10 @@ from datetime import timedelta
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
+
 # Security
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'wildguard-insecure-key-change-in-production')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
@@ -22,11 +26,14 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'rest_framework',
     'corsheaders',
-    'detection',
+    'detection.apps.DetectionConfig',  # Use AppConfig for auto-detection generator
     'admin_module',
     'user_module',
     'accounts'
 ]
+
+# URL Configuration
+ROOT_URLCONF = 'config.urls'
 
 # Middleware
 MIDDLEWARE = [
@@ -44,17 +51,29 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# MongoDB Configuration
-MONGO_HOST = os.environ.get('MONGODB_HOST', 'mongodb://localhost:27017')
-MONGO_DB = os.environ.get('MONGODB_DB', 'wildguard')
+# MongoDB Configuration - MUST be set via environment variable
+# NEVER hardcode credentials here!
+MONGO_HOST = os.environ.get('MONGODB_HOST')
+MONGO_DB = os.environ.get('MONGODB_DB', 'Wildguard')
+
+if not MONGO_HOST:
+    raise ValueError(
+        "MONGODB_HOST environment variable is required. "
+        "Set it in .env file or export it before running the server."
+    )
 
 # MongoDB Connection
 import mongoengine as me  # type: ignore
+from pymongo import MongoClient
+import certifi
+
+# Use certifi for SSL certificates with Atlas
+me.disconnect_all()  # Clear any existing connections
 me.connect(
     db=MONGO_DB,
     host=MONGO_HOST,
-    connect=False,
-    retryWrites=False
+    alias='default',
+    tlsCAFile=certifi.where()
 )
 
 # REST Framework
@@ -107,3 +126,7 @@ LOGGING = {
 # Create logs directory
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
 os.makedirs(MEDIA_ROOT, exist_ok=True)
+
+# Auto Detection Generator Configuration
+# Set to False to disable automatic detection generation
+AUTO_GENERATE_DETECTIONS = os.environ.get('AUTO_GENERATE_DETECTIONS', 'True') == 'True'

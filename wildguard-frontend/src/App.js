@@ -13,7 +13,6 @@ import { AppContainer, MainContent } from './components/shared/Layout';
 
 // Admin Components
 import AdminDashboard from './components/admin/AdminDashboard';
-import SpeciesManagement from './components/admin/SpeciesManagement';
 import CameraManagement from './components/admin/CameraManagement';
 import DetectionHistory from './components/admin/DetectionHistory';
 import EmergencyManagement from './components/admin/EmergencyManagement';
@@ -87,7 +86,6 @@ const AdminLayout = () => {
       <MainContent>
         <Routes>
           <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="species" element={<SpeciesManagement />} />
           <Route path="cameras" element={<CameraManagement />} />
           <Route path="detections" element={<DetectionHistory />} />
           <Route path="emergency" element={<EmergencyManagement />} />

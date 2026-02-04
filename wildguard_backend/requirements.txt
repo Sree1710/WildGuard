@@ -8,7 +8,7 @@ django-cors-headers==4.3.1
 
 # Database
 mongoengine==0.28.0
-pymongo==4.6.0
+pymongo==3.12.3
 
 # Authentication
 PyJWT==2.10.1
@@ -47,3 +47,7 @@ python-dotenv==1.0.0
 
 # Optional: Mock data generation
 faker==21.0.0
+
+# PDF Generation
+reportlab==4.0.8
+certifi==2024.2.2

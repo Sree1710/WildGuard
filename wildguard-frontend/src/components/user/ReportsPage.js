@@ -1,23 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaFileDownload, FaCalendar, FaFilter } from 'react-icons/fa';
+import { FaFileDownload, FaCalendar, FaFilter, FaSync, FaChartBar, FaPaw, FaExclamationTriangle } from 'react-icons/fa';
 import { PageHeader, Section } from '../shared/Layout';
 import { Button } from '../shared/Button';
-import { Form, FormGroup, Label, Input, Select, FormRow } from '../shared/Form';
+import { Form, FormGroup, Label, Select, FormRow } from '../shared/Form';
 import { Card } from '../shared/Card';
+import api from '../../services/api';
 
 /**
  * Reports Page Component
- * Generate and download reports
+ * Generate and view real-time analytics reports
  */
 const ReportsPage = () => {
+  const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [reportConfig, setReportConfig] = useState({
     reportType: 'detections',
-    dateFrom: '',
-    dateTo: '',
-    zone: 'all',
-    format: 'pdf',
+    days: '7',
   });
+
+  // Fetch report data
+  const fetchReport = async (overrideConfig = null) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const config = overrideConfig || reportConfig;
+      const response = await api.getUserReports({
+        days: config.days,
+        report_type: config.reportType
+      });
+      if (response.success && response.report) {
+        setReport(response.report);
+      }
+    } catch (err) {
+      console.error('Failed to fetch report:', err);
+      setError('Failed to generate report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReport();
+  }, []);
 
   // Handle input changes
   const handleChange = (e) => {
@@ -30,16 +56,79 @@ const ReportsPage = () => {
   // Handle report generation
   const handleGenerateReport = (e) => {
     e.preventDefault();
-    alert(`Generating ${reportConfig.reportType} report in ${reportConfig.format.toUpperCase()} format...`);
-    // In production, this would call an API to generate the report
+    fetchReport();
+  };
+
+  // Quick report handlers
+  const handleQuickReport = (type, days) => {
+    const config = { reportType: type, days: days.toString() };
+    setReportConfig(config);
+    fetchReport(config);
+  };
+
+  // Export as JSON
+  const handleExportJSON = () => {
+    if (!report) return;
+    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wildguard_report_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+  };
+
+  // Export as PDF
+  const handleExportPDF = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('access_token');
+      const params = new URLSearchParams({
+        days: reportConfig.days,
+        report_type: reportConfig.reportType
+      });
+
+      const response = await fetch(`http://localhost:8000/api/user/reports/pdf/?${params}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `WildGuard_Report_${new Date().toISOString().split('T')[0]}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        setError('Failed to generate PDF report');
+      }
+    } catch (err) {
+      console.error('PDF export error:', err);
+      setError('Failed to export PDF');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <Container>
       <PageHeader>
-        <h1>Reports & Analytics</h1>
-        <p>Generate custom reports for analysis and documentation</p>
+        <HeaderContent>
+          <div>
+            <h1>Reports & Analytics</h1>
+            <p>Real-time detection analytics and report generation</p>
+          </div>
+          <RefreshButton onClick={() => fetchReport()} disabled={loading}>
+            <FaSync className={loading ? 'spinning' : ''} />
+            {loading ? 'Loading...' : 'Refresh'}
+          </RefreshButton>
+        </HeaderContent>
       </PageHeader>
+
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
       {/* Report Configuration */}
       <Section>
@@ -49,76 +138,44 @@ const ReportsPage = () => {
           </CardHeader>
 
           <Form onSubmit={handleGenerateReport}>
-            <FormGroup>
-              <Label>Report Type *</Label>
-              <Select 
-                name="reportType" 
-                value={reportConfig.reportType} 
-                onChange={handleChange}
-              >
-                <option value="detections">All Detections Report</option>
-                <option value="animals">Animal Detections Only</option>
-                <option value="humans">Human Intrusions Only</option>
-                <option value="alerts">Critical Alerts Summary</option>
-                <option value="camera-status">Camera Status Report</option>
-                <option value="monthly">Monthly Summary</option>
-              </Select>
-            </FormGroup>
-
             <FormRow>
               <FormGroup>
-                <Label>
-                  <FaCalendar /> Date From *
-                </Label>
-                <Input
-                  type="date"
-                  name="dateFrom"
-                  value={reportConfig.dateFrom}
+                <Label>Report Type</Label>
+                <Select
+                  name="reportType"
+                  value={reportConfig.reportType}
                   onChange={handleChange}
-                  required
-                />
-              </FormGroup>
-
-              <FormGroup>
-                <Label>
-                  <FaCalendar /> Date To *
-                </Label>
-                <Input
-                  type="date"
-                  name="dateTo"
-                  value={reportConfig.dateTo}
-                  onChange={handleChange}
-                  required
-                />
-              </FormGroup>
-            </FormRow>
-
-            <FormRow>
-              <FormGroup>
-                <Label>Zone Filter</Label>
-                <Select name="zone" value={reportConfig.zone} onChange={handleChange}>
-                  <option value="all">All Zones</option>
-                  <option value="North Sector">North Sector</option>
-                  <option value="East Sector">East Sector</option>
-                  <option value="South Sector">South Sector</option>
-                  <option value="West Sector">West Sector</option>
+                >
+                  <option value="detections">All Detections</option>
+                  <option value="animals">Wildlife Only</option>
+                  <option value="humans">Human Activity Only</option>
+                  <option value="alerts">Critical Alerts Only</option>
                 </Select>
               </FormGroup>
 
               <FormGroup>
-                <Label>Export Format *</Label>
-                <Select name="format" value={reportConfig.format} onChange={handleChange}>
-                  <option value="pdf">PDF Document</option>
-                  <option value="csv">CSV Spreadsheet</option>
-                  <option value="excel">Excel Workbook</option>
-                  <option value="json">JSON Data</option>
+                <Label>Time Period</Label>
+                <Select name="days" value={reportConfig.days} onChange={handleChange}>
+                  <option value="1">Today</option>
+                  <option value="7">Last 7 Days</option>
+                  <option value="14">Last 14 Days</option>
+                  <option value="30">Last 30 Days</option>
+                  <option value="90">Last 90 Days</option>
                 </Select>
               </FormGroup>
             </FormRow>
 
-            <GenerateButton type="submit">
-              <FaFileDownload /> Generate Report
-            </GenerateButton>
+            <ButtonRow>
+              <GenerateButton type="submit" disabled={loading}>
+                <FaChartBar /> Generate Report
+              </GenerateButton>
+              <ExportButton type="button" onClick={handleExportJSON} disabled={!report}>
+                <FaFileDownload /> Export JSON
+              </ExportButton>
+              <PDFButton type="button" onClick={handleExportPDF} disabled={loading}>
+                <FaFileDownload /> Download PDF
+              </PDFButton>
+            </ButtonRow>
           </Form>
         </ConfigCard>
       </Section>
@@ -127,86 +184,163 @@ const ReportsPage = () => {
       <Section>
         <SectionTitle>Quick Reports</SectionTitle>
         <QuickReportsGrid>
-          <QuickReportCard>
+          <QuickReportCard onClick={() => handleQuickReport('detections', 1)}>
             <QuickReportIcon>📊</QuickReportIcon>
             <QuickReportTitle>Today's Summary</QuickReportTitle>
             <QuickReportDescription>
-              All detections and alerts from today
+              All detections from today
             </QuickReportDescription>
-            <QuickReportButton>
-              <FaFileDownload /> Download
-            </QuickReportButton>
           </QuickReportCard>
 
-          <QuickReportCard>
+          <QuickReportCard onClick={() => handleQuickReport('detections', 7)}>
             <QuickReportIcon>📅</QuickReportIcon>
             <QuickReportTitle>Weekly Report</QuickReportTitle>
             <QuickReportDescription>
-              Last 7 days activity summary
+              Last 7 days activity
             </QuickReportDescription>
-            <QuickReportButton>
-              <FaFileDownload /> Download
-            </QuickReportButton>
           </QuickReportCard>
 
-          <QuickReportCard>
+          <QuickReportCard onClick={() => handleQuickReport('alerts', 30)}>
             <QuickReportIcon>🚨</QuickReportIcon>
             <QuickReportTitle>Critical Alerts</QuickReportTitle>
             <QuickReportDescription>
-              All high-priority incidents
+              High-priority incidents
             </QuickReportDescription>
-            <QuickReportButton>
-              <FaFileDownload /> Download
-            </QuickReportButton>
           </QuickReportCard>
 
-          <QuickReportCard>
+          <QuickReportCard onClick={() => handleQuickReport('animals', 30)}>
             <QuickReportIcon>🐾</QuickReportIcon>
             <QuickReportTitle>Wildlife Activity</QuickReportTitle>
             <QuickReportDescription>
               Animal detection patterns
             </QuickReportDescription>
-            <QuickReportButton>
-              <FaFileDownload /> Download
-            </QuickReportButton>
           </QuickReportCard>
         </QuickReportsGrid>
       </Section>
 
-      {/* Recent Reports */}
-      <Section>
-        <SectionTitle>Recent Reports</SectionTitle>
-        <RecentReportsCard>
-          <ReportHistory>
-            <HistoryItem>
-              <HistoryIcon>📄</HistoryIcon>
-              <HistoryInfo>
-                <HistoryTitle>Monthly Detection Report - December 2025</HistoryTitle>
-                <HistoryMeta>Generated on 2025-12-29 | PDF | 2.4 MB</HistoryMeta>
-              </HistoryInfo>
-              <DownloadLink href="#">Download</DownloadLink>
-            </HistoryItem>
+      {/* Report Results */}
+      {report && (
+        <Section>
+          <SectionTitle>Report Results: {report.period}</SectionTitle>
 
-            <HistoryItem>
-              <HistoryIcon>📄</HistoryIcon>
-              <HistoryInfo>
-                <HistoryTitle>Critical Alerts Summary - Week 51</HistoryTitle>
-                <HistoryMeta>Generated on 2025-12-25 | CSV | 128 KB</HistoryMeta>
-              </HistoryInfo>
-              <DownloadLink href="#">Download</DownloadLink>
-            </HistoryItem>
+          {/* Summary Stats */}
+          <StatsGrid>
+            <StatBox>
+              <StatIcon color="#2196f3">
+                <FaChartBar />
+              </StatIcon>
+              <StatInfo>
+                <StatValue>{report.summary?.total_detections || 0}</StatValue>
+                <StatLabel>Total Detections</StatLabel>
+              </StatInfo>
+            </StatBox>
 
-            <HistoryItem>
-              <HistoryIcon>📄</HistoryIcon>
-              <HistoryInfo>
-                <HistoryTitle>Camera Status Report - December 2025</HistoryTitle>
-                <HistoryMeta>Generated on 2025-12-20 | Excel | 856 KB</HistoryMeta>
-              </HistoryInfo>
-              <DownloadLink href="#">Download</DownloadLink>
-            </HistoryItem>
-          </ReportHistory>
-        </RecentReportsCard>
-      </Section>
+            <StatBox>
+              <StatIcon color="#f44336">
+                <FaExclamationTriangle />
+              </StatIcon>
+              <StatInfo>
+                <StatValue>{report.summary?.total_alerts || 0}</StatValue>
+                <StatLabel>Total Alerts</StatLabel>
+              </StatInfo>
+            </StatBox>
+
+            <StatBox>
+              <StatIcon color="#4caf50">
+                <FaPaw />
+              </StatIcon>
+              <StatInfo>
+                <StatValue>{report.summary?.by_type?.image || 0}</StatValue>
+                <StatLabel>Image Detections</StatLabel>
+              </StatInfo>
+            </StatBox>
+
+            <StatBox>
+              <StatIcon color="#9c27b0">
+                🔊
+              </StatIcon>
+              <StatInfo>
+                <StatValue>{report.summary?.by_type?.audio || 0}</StatValue>
+                <StatLabel>Audio Detections</StatLabel>
+              </StatInfo>
+            </StatBox>
+          </StatsGrid>
+
+          {/* Alert Severity Breakdown */}
+          {report.summary?.by_severity && (
+            <BreakdownCard>
+              <CardHeader><h3>Alert Severity Breakdown</h3></CardHeader>
+              <SeverityGrid>
+                <SeverityItem color="#d32f2f">
+                  <SeverityCount>{report.summary.by_severity.critical || 0}</SeverityCount>
+                  <SeverityLabel>Critical</SeverityLabel>
+                </SeverityItem>
+                <SeverityItem color="#f57c00">
+                  <SeverityCount>{report.summary.by_severity.high || 0}</SeverityCount>
+                  <SeverityLabel>High</SeverityLabel>
+                </SeverityItem>
+                <SeverityItem color="#ffa726">
+                  <SeverityCount>{report.summary.by_severity.medium || 0}</SeverityCount>
+                  <SeverityLabel>Medium</SeverityLabel>
+                </SeverityItem>
+              </SeverityGrid>
+            </BreakdownCard>
+          )}
+
+          {/* Top Detected Objects */}
+          {report.top_detected_objects && report.top_detected_objects.length > 0 && (
+            <TopObjectsCard>
+              <CardHeader><h3>Top Detected Objects</h3></CardHeader>
+              <ObjectsList>
+                {report.top_detected_objects.map((item, index) => (
+                  <ObjectItem key={index}>
+                    <ObjectRank>#{index + 1}</ObjectRank>
+                    <ObjectName>{item.object}</ObjectName>
+                    <ObjectCount>{item.count} detections</ObjectCount>
+                  </ObjectItem>
+                ))}
+              </ObjectsList>
+            </TopObjectsCard>
+          )}
+
+          {/* Daily Trends */}
+          {report.daily_trends && report.daily_trends.length > 0 && (
+            <TrendsCard>
+              <CardHeader><h3>Daily Detection Trends</h3></CardHeader>
+              <TrendsChart>
+                {report.daily_trends.map((item, index) => (
+                  <TrendBar key={index}>
+                    <TrendBarFill height={Math.min((item.count / Math.max(...report.daily_trends.map(d => d.count))) * 100, 100)} />
+                    <TrendLabel>{item.date.split('-').slice(1).join('/')}</TrendLabel>
+                    <TrendValue>{item.count}</TrendValue>
+                  </TrendBar>
+                ))}
+              </TrendsChart>
+            </TrendsCard>
+          )}
+
+          {/* Camera Status */}
+          {report.camera_status && (
+            <CameraStatusCard>
+              <CardHeader><h3>Camera Status</h3></CardHeader>
+              <CameraStats>
+                <CameraStat>
+                  <CameraStatValue>{report.camera_status.total}</CameraStatValue>
+                  <CameraStatLabel>Total Cameras</CameraStatLabel>
+                </CameraStat>
+                <CameraStat>
+                  <CameraStatValue style={{ color: '#4caf50' }}>{report.camera_status.active}</CameraStatValue>
+                  <CameraStatLabel>Active</CameraStatLabel>
+                </CameraStat>
+                <CameraStat>
+                  <CameraStatValue style={{ color: '#f44336' }}>{report.camera_status.inactive}</CameraStatValue>
+                  <CameraStatLabel>Inactive</CameraStatLabel>
+                </CameraStat>
+              </CameraStats>
+            </CameraStatusCard>
+          )}
+        </Section>
+      )}
     </Container>
   );
 };
@@ -214,6 +348,40 @@ const ReportsPage = () => {
 // Styled Components
 const Container = styled.div`
   width: 100%;
+`;
+
+const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const RefreshButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: ${props => props.theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: ${props => props.theme.borderRadius.md};
+  cursor: pointer;
+  font-size: 14px;
+  
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.6; }
+  
+  .spinning { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+`;
+
+const ErrorBanner = styled.div`
+  background: #fff3cd;
+  color: #856404;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 16px 0;
 `;
 
 const ConfigCard = styled(Card)``;
@@ -232,11 +400,22 @@ const CardHeader = styled.div`
   }
 `;
 
-const GenerateButton = styled(Button)`
-  width: 100%;
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 12px;
   margin-top: ${props => props.theme.spacing.lg};
-  padding: ${props => props.theme.spacing.lg};
-  font-size: ${props => props.theme.fontSizes.lg};
+`;
+
+const GenerateButton = styled(Button)`
+  flex: 1;
+`;
+
+const ExportButton = styled(Button)`
+  background: ${props => props.theme.colors.success};
+`;
+
+const PDFButton = styled(Button)`
+  background: ${props => props.theme.colors.danger || '#d32f2f'};
 `;
 
 const SectionTitle = styled.h3`
@@ -246,14 +425,14 @@ const SectionTitle = styled.h3`
 
 const QuickReportsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: ${props => props.theme.spacing.lg};
 `;
 
 const QuickReportCard = styled(Card)`
   text-align: center;
-  transition: all ${props => props.theme.transitions.normal};
-
+  cursor: pointer;
+  transition: all 0.2s;
   &:hover {
     transform: translateY(-4px);
     box-shadow: ${props => props.theme.shadows.lg};
@@ -261,7 +440,7 @@ const QuickReportCard = styled(Card)`
 `;
 
 const QuickReportIcon = styled.div`
-  font-size: 3rem;
+  font-size: 2.5rem;
   margin-bottom: ${props => props.theme.spacing.md};
 `;
 
@@ -273,67 +452,176 @@ const QuickReportTitle = styled.h4`
 const QuickReportDescription = styled.p`
   font-size: ${props => props.theme.fontSizes.sm};
   color: ${props => props.theme.colors.textSecondary};
-  margin-bottom: ${props => props.theme.spacing.lg};
+  margin: 0;
 `;
 
-const QuickReportButton = styled(Button)`
-  width: 100%;
+const StatsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: ${props => props.theme.spacing.lg};
+  margin-bottom: ${props => props.theme.spacing.xl};
 `;
 
-const RecentReportsCard = styled(Card)``;
-
-const ReportHistory = styled.div`
+const StatBox = styled.div`
+  background: ${props => props.theme.colors.white};
+  border-radius: ${props => props.theme.borderRadius.lg};
+  box-shadow: ${props => props.theme.shadows.sm};
+  padding: ${props => props.theme.spacing.lg};
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: ${props => props.theme.spacing.md};
 `;
 
-const HistoryItem = styled.div`
+const StatIcon = styled.div`
+  width: 50px;
+  height: 50px;
+  border-radius: ${props => props.theme.borderRadius.lg};
+  background: ${props => props.color}20;
+  color: ${props => props.color};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+`;
+
+const StatInfo = styled.div``;
+
+const StatValue = styled.div`
+  font-size: ${props => props.theme.fontSizes.xxl};
+  font-weight: ${props => props.theme.fontWeights.bold};
+  color: ${props => props.theme.colors.textPrimary};
+`;
+
+const StatLabel = styled.div`
+  font-size: ${props => props.theme.fontSizes.sm};
+  color: ${props => props.theme.colors.textSecondary};
+`;
+
+const BreakdownCard = styled(Card)`
+  margin-bottom: ${props => props.theme.spacing.xl};
+`;
+
+const SeverityGrid = styled.div`
+  display: flex;
+  gap: ${props => props.theme.spacing.xl};
+  justify-content: center;
+`;
+
+const SeverityItem = styled.div`
+  text-align: center;
+  padding: ${props => props.theme.spacing.lg};
+  background: ${props => props.color}15;
+  border-radius: ${props => props.theme.borderRadius.lg};
+  min-width: 100px;
+`;
+
+const SeverityCount = styled.div`
+  font-size: 2rem;
+  font-weight: bold;
+  color: ${props => props.theme.colors.textPrimary};
+`;
+
+const SeverityLabel = styled.div`
+  font-size: ${props => props.theme.fontSizes.sm};
+  color: ${props => props.theme.colors.textSecondary};
+`;
+
+const TopObjectsCard = styled(Card)`
+  margin-bottom: ${props => props.theme.spacing.xl};
+`;
+
+const ObjectsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: ${props => props.theme.spacing.sm};
+`;
+
+const ObjectItem = styled.div`
   display: flex;
   align-items: center;
   gap: ${props => props.theme.spacing.md};
   padding: ${props => props.theme.spacing.md};
   background: ${props => props.theme.colors.bgLight};
   border-radius: ${props => props.theme.borderRadius.md};
-  transition: all ${props => props.theme.transitions.fast};
-
-  &:hover {
-    background: ${props => props.theme.colors.primaryLight}15;
-  }
 `;
 
-const HistoryIcon = styled.div`
-  font-size: 2rem;
-  flex-shrink: 0;
+const ObjectRank = styled.div`
+  font-weight: bold;
+  color: ${props => props.theme.colors.primary};
+  width: 30px;
 `;
 
-const HistoryInfo = styled.div`
+const ObjectName = styled.div`
   flex: 1;
+  font-weight: 500;
 `;
 
-const HistoryTitle = styled.div`
-  font-weight: ${props => props.theme.fontWeights.medium};
-  color: ${props => props.theme.colors.textPrimary};
-  margin-bottom: ${props => props.theme.spacing.xs};
-`;
-
-const HistoryMeta = styled.div`
-  font-size: ${props => props.theme.fontSizes.xs};
+const ObjectCount = styled.div`
   color: ${props => props.theme.colors.textSecondary};
+  font-size: ${props => props.theme.fontSizes.sm};
 `;
 
-const DownloadLink = styled.a`
-  padding: ${props => props.theme.spacing.sm} ${props => props.theme.spacing.md};
-  background: ${props => props.theme.colors.primary};
-  color: ${props => props.theme.colors.white};
-  border-radius: ${props => props.theme.borderRadius.sm};
-  font-size: ${props => props.theme.fontSizes.sm};
-  text-decoration: none;
-  transition: all ${props => props.theme.transitions.fast};
+const TrendsCard = styled(Card)`
+  margin-bottom: ${props => props.theme.spacing.xl};
+`;
 
-  &:hover {
-    background: ${props => props.theme.colors.primaryDark};
-  }
+const TrendsChart = styled.div`
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 150px;
+  padding-top: 20px;
+`;
+
+const TrendBar = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+`;
+
+const TrendBarFill = styled.div`
+  width: 100%;
+  height: ${props => props.height}%;
+  background: linear-gradient(180deg, ${props => props.theme.colors.primary} 0%, ${props => props.theme.colors.primaryDark} 100%);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+`;
+
+const TrendLabel = styled.div`
+  font-size: 10px;
+  color: ${props => props.theme.colors.textSecondary};
+  margin-top: 4px;
+`;
+
+const TrendValue = styled.div`
+  font-size: 11px;
+  font-weight: bold;
+  color: ${props => props.theme.colors.textPrimary};
+`;
+
+const CameraStatusCard = styled(Card)``;
+
+const CameraStats = styled.div`
+  display: flex;
+  gap: ${props => props.theme.spacing.xl};
+  justify-content: center;
+`;
+
+const CameraStat = styled.div`
+  text-align: center;
+`;
+
+const CameraStatValue = styled.div`
+  font-size: 2rem;
+  font-weight: bold;
+`;
+
+const CameraStatLabel = styled.div`
+  font-size: ${props => props.theme.fontSizes.sm};
+  color: ${props => props.theme.colors.textSecondary};
 `;
 
 export default ReportsPage;

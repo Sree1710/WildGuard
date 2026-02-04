@@ -14,6 +14,7 @@ const Login = () => {
   });
 
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState('admin');
 
   const handleChange = (e) => {
@@ -22,28 +23,38 @@ const Login = () => {
   };
 
   // Quick login shortcuts for demo accounts
-  const quickLogin = (role) => {
+  const quickLogin = async (role) => {
+    setLoading(true);
+    setError('');
+    
     const credentials = role === 'admin'
       ? { username: 'admin', password: 'admin123' }
-      : { username: 'user', password: 'user123' };
+      : { username: 'ranger1', password: 'ranger123' };
 
-    const result = login(credentials.username, credentials.password);
+    const result = await login(credentials.username, credentials.password);
 
+    setLoading(false);
     if (result.success) {
       navigate(role === 'admin' ? '/admin/dashboard' : '/user/dashboard');
+    } else {
+      setError(result.message);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.username || !formData.password) {
-      setError('Please enter both email and password');
+      setError('Please enter both username and password');
       return;
     }
 
-    const result = login(formData.username, formData.password);
+    setLoading(true);
+    setError('');
+    
+    const result = await login(formData.username, formData.password);
 
+    setLoading(false);
     if (result.success) {
       navigate(
         formData.username === 'admin'
@@ -112,15 +123,15 @@ const Login = () => {
               <Forgot>Forgot Password?</Forgot>
             </Options>
 
-            <Submit type="submit">
-              Sign in
+            <Submit type="submit" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
             </Submit>
           </Form>
 
           <DemoSection>
             <DemoTitle>Quick Access (Demo)</DemoTitle>
             <DemoButtons>
-              <DemoButton onClick={() => quickLogin('admin')}>
+              <DemoButton onClick={() => quickLogin('admin')} disabled={loading}>
                 <FaUserShield /> Login as Admin
               </DemoButton>
               <DemoButton onClick={() => quickLogin('user')}>

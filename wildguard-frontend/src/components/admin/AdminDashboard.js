@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaPaw, FaUserSecret, FaBell, FaChartLine } from 'react-icons/fa';
+import { FaPaw, FaUserSecret, FaBell, FaChartLine, FaCamera, FaSync } from 'react-icons/fa';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { 
   StatCard, StatIcon, StatContent, StatLabel, StatValue, StatChange 
@@ -8,18 +8,93 @@ import {
 import { Grid, PageHeader, Section } from '../shared/Layout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../shared/Table';
 import { Badge } from '../shared/Layout';
-import { dashboardStats, recentActivity, detectionTrendData } from '../../data/mockData';
+import api from '../../services/api';
+
+// Fallback mock data for when API is unavailable
+const fallbackStats = {
+  totalDetections: 0,
+  animalsDetected: 0,
+  humanIntrusions: 0,
+  alertsGenerated: 0,
+  activeCameras: 0
+};
+
+const fallbackTrendData = [
+  { day: 'Mon', animals: 0, humans: 0, suspicious: 0 },
+  { day: 'Tue', animals: 0, humans: 0, suspicious: 0 },
+  { day: 'Wed', animals: 0, humans: 0, suspicious: 0 },
+  { day: 'Thu', animals: 0, humans: 0, suspicious: 0 },
+  { day: 'Fri', animals: 0, humans: 0, suspicious: 0 },
+  { day: 'Sat', animals: 0, humans: 0, suspicious: 0 },
+  { day: 'Sun', animals: 0, humans: 0, suspicious: 0 },
+];
 
 /**
  * Admin Dashboard Component
  * Displays overview statistics, detection trends, and recent activity
  */
 const AdminDashboard = () => {
+  const [stats, setStats] = useState(fallbackStats);
+  const [trendData, setTrendData] = useState(fallbackTrendData);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const response = await api.getAdminDashboard();
+      
+      if (response.success) {
+        const dashboard = response.dashboard;
+        setStats({
+          totalDetections: dashboard.total_detections || 0,
+          animalsDetected: dashboard.animals_detected || 0,
+          humanIntrusions: dashboard.human_intrusions || 0,
+          alertsGenerated: dashboard.alerts_today || 0,
+          activeCameras: dashboard.active_cameras || 0
+        });
+        
+        if (dashboard.trend_data) {
+          setTrendData(dashboard.trend_data);
+        }
+        
+        if (dashboard.recent_activity) {
+          setRecentActivity(dashboard.recent_activity);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+      setError('Failed to load dashboard data. Using cached data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+    
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchDashboardData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <DashboardContainer>
       <PageHeader>
-        <h1>Admin Dashboard</h1>
-        <p>Real-time overview of wildlife monitoring system</p>
+        <HeaderContent>
+          <div>
+            <h1>Admin Dashboard</h1>
+            <p>Real-time overview of wildlife monitoring system</p>
+          </div>
+          <RefreshButton onClick={fetchDashboardData} disabled={loading}>
+            <FaSync className={loading ? 'spinning' : ''} /> 
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </RefreshButton>
+        </HeaderContent>
+        {error && <ErrorBanner>{error}</ErrorBanner>}
       </PageHeader>
 
       {/* Statistics Cards */}
@@ -31,8 +106,8 @@ const AdminDashboard = () => {
             </StatIcon>
             <StatContent>
               <StatLabel>Total Detections</StatLabel>
-              <StatValue>{dashboardStats.totalDetections}</StatValue>
-              <StatChange positive>+12% from last week</StatChange>
+              <StatValue>{stats.totalDetections}</StatValue>
+              <StatChange positive>Today's count</StatChange>
             </StatContent>
           </StatCard>
 
@@ -42,8 +117,8 @@ const AdminDashboard = () => {
             </StatIcon>
             <StatContent>
               <StatLabel>Animals Detected</StatLabel>
-              <StatValue>{dashboardStats.animalsDetected}</StatValue>
-              <StatChange positive>+8% from last week</StatChange>
+              <StatValue>{stats.animalsDetected}</StatValue>
+              <StatChange positive>Wildlife activity</StatChange>
             </StatContent>
           </StatCard>
 
@@ -53,8 +128,8 @@ const AdminDashboard = () => {
             </StatIcon>
             <StatContent>
               <StatLabel>Human Intrusions</StatLabel>
-              <StatValue>{dashboardStats.humanIntrusions}</StatValue>
-              <StatChange>-3% from last week</StatChange>
+              <StatValue>{stats.humanIntrusions}</StatValue>
+              <StatChange>Potential threats</StatChange>
             </StatContent>
           </StatCard>
 
@@ -64,8 +139,19 @@ const AdminDashboard = () => {
             </StatIcon>
             <StatContent>
               <StatLabel>Critical Alerts</StatLabel>
-              <StatValue>{dashboardStats.alertsGenerated}</StatValue>
-              <StatChange>+5% from last week</StatChange>
+              <StatValue>{stats.alertsGenerated}</StatValue>
+              <StatChange>Requires attention</StatChange>
+            </StatContent>
+          </StatCard>
+
+          <StatCard>
+            <StatIcon color="info">
+              <FaCamera />
+            </StatIcon>
+            <StatContent>
+              <StatLabel>Active Cameras</StatLabel>
+              <StatValue>{stats.activeCameras}</StatValue>
+              <StatChange positive>Online now</StatChange>
             </StatContent>
           </StatCard>
         </Grid>
@@ -79,7 +165,7 @@ const AdminDashboard = () => {
           </ChartHeader>
           <ChartContainer>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={detectionTrendData}>
+              <LineChart data={trendData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
@@ -129,22 +215,30 @@ const AdminDashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentActivity.map((activity) => (
-                <TableRow key={activity.id}>
-                  <TableCell>
-                    <TypeBadge type={activity.type}>
-                      {activity.type}
-                    </TypeBadge>
-                  </TableCell>
-                  <TableCell>{activity.message}</TableCell>
-                  <TableCell>{activity.time}</TableCell>
-                  <TableCell>
-                    <Badge variant={getSeverityVariant(activity.severity)}>
-                      {activity.severity}
-                    </Badge>
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity) => (
+                  <TableRow key={activity.id}>
+                    <TableCell>
+                      <TypeBadge type={activity.type}>
+                        {activity.type}
+                      </TypeBadge>
+                    </TableCell>
+                    <TableCell>{activity.message}</TableCell>
+                    <TableCell>{activity.time}</TableCell>
+                    <TableCell>
+                      <Badge variant={getSeverityVariant(activity.severity)}>
+                        {activity.severity}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} style={{ textAlign: 'center', color: '#888' }}>
+                    No recent activity
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </ActivityCard>
@@ -167,6 +261,53 @@ const getSeverityVariant = (severity) => {
 // Styled Components
 const DashboardContainer = styled.div`
   width: 100%;
+`;
+
+const HeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+`;
+
+const RefreshButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: ${props => props.theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: ${props => props.theme.borderRadius.md};
+  cursor: pointer;
+  font-size: 14px;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const ErrorBanner = styled.div`
+  background: #fff3cd;
+  color: #856404;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin-top: 16px;
+  font-size: 14px;
 `;
 
 const ChartCard = styled.div`

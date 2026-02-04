@@ -1,0 +1,21 @@
+{
+  "timestamp": "2026-01-31T17:17:03.706908",
+  "model": "YOLOv8N-cls",
+  "model_file": "D:\\WildGuard MCA\\wildguard_backend\\ml_experiments\\trained_models\\yolov8_image_classifier.pt",
+  "dataset": "D:\\WildGuard MCA\\wildguard_backend\\ml_experiments\\datasets\\yolo_classification",
+  "training_params": {
+    "epochs": 30,
+    "batch_size": 16,
+    "image_size": 224,
+    "model_size": "n"
+  },
+  "metrics": {
+    "top1_accuracy": 0.9629629850387573,
+    "top5_accuracy": 1.0
+  },
+  "training_time_seconds": 140.69388461112976,
+  "categories": [
+    "animal",
+    "human"
+  ]
+}

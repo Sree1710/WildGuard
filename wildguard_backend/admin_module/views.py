@@ -17,9 +17,8 @@ from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from detection.models import User, Species, CameraTrap, Detection, EmergencyAlert, SystemMetrics, ActivityLog
+from detection.models import User, CameraTrap, Detection, EmergencyAlert, SystemMetrics, ActivityLog
 from accounts.auth import require_auth, require_role
-from ml_services import ImageDetector, AudioDetector
 
 
 @require_auth
@@ -42,180 +41,125 @@ def dashboard_view(request):
         detections_today = Detection.objects(created_at__gte=today).count()
         alerts_today = Detection.objects(created_at__gte=today, alert_level__in=['high', 'critical']).count()
         
+        # Count by detected object type
+        # Animals: any wildlife detection
+        animals_detected = Detection.objects(
+            created_at__gte=today, 
+            detected_object__nin=['human', 'person', 'chainsaw', 'gunshot', 'vehicle']
+        ).count()
+        # Human intrusions: humans or suspicious activity
+        human_intrusions = Detection.objects(
+            created_at__gte=today, 
+            detected_object__in=['human', 'person']
+        ).count()
+        
         # Unresolved emergencies
         unresolved_emergencies = EmergencyAlert.objects(is_resolved=False).count()
         
-        # Recent detections
-        recent_detections = Detection.objects.order_by('-created_at')[:10]
+        # Recent activity (last 10 detections/alerts as activity feed)
+        # Note: Convert to list first to avoid MongoEngine thread-local context issues
+        recent_detections = list(Detection.objects.order_by('-created_at').limit(10).as_pymongo())
+        recent_activity = []
         
+        # Get camera names for lookup using raw pymongo to avoid thread-local issues
+        camera_lookup = {str(c['_id']): c.get('name', 'Unknown') for c in CameraTrap.objects.as_pymongo()}
+        
+        for det in recent_detections:
+            try:
+                alert_level = det.get('alert_level', 'none')
+                activity_type = 'alert' if alert_level in ['high', 'critical'] else 'detection'
+                severity = alert_level if alert_level else 'info'
+                detected_obj = det.get('detected_object', 'Unknown')
+                message = f"{detected_obj} detected"
+                
+                # Get camera name from lookup
+                camera_trap_id = det.get('camera_trap')
+                if camera_trap_id:
+                    cam_name = camera_lookup.get(str(camera_trap_id), 'Unknown')
+                    message += f" at camera {cam_name}"
+                
+                created_at = det.get('created_at')
+                time_str = created_at.strftime('%H:%M:%S') if created_at else 'Unknown'
+                
+                recent_activity.append({
+                    'id': str(det.get('_id', '')),
+                    'type': activity_type,
+                    'message': message,
+                    'time': time_str,
+                    'severity': severity
+                })
+            except Exception:
+                continue
+        
+        # Trend data (last 7 days)
+        trend_data = []
+        days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        for i in range(6, -1, -1):
+            day_start = (datetime.now() - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            
+            day_animals = Detection.objects(
+                created_at__gte=day_start, 
+                created_at__lt=day_end, 
+                detected_object__nin=['human', 'person', 'chainsaw', 'gunshot', 'vehicle']
+            ).count()
+            day_humans = Detection.objects(
+                created_at__gte=day_start, 
+                created_at__lt=day_end, 
+                detected_object__in=['human', 'person']
+            ).count()
+            day_suspicious = Detection.objects(
+                created_at__gte=day_start, 
+                created_at__lt=day_end, 
+                alert_level__in=['high', 'critical']
+            ).count()
+            
+            trend_data.append({
+                'day': days[day_start.weekday()],
+                'animals': day_animals,
+                'humans': day_humans,
+                'suspicious': day_suspicious
+            })
+        
+        # Dashboard data matching frontend expectations
         dashboard_data = {
             'timestamp': datetime.now().isoformat(),
+            'total_detections': detections_today,
+            'animals_detected': animals_detected,
+            'human_intrusions': human_intrusions,
+            'alerts_today': alerts_today,
+            'active_cameras': online_cameras,
+            'trend_data': trend_data,
+            'recent_activity': recent_activity,
             'camera_status': {
                 'total': total_cameras,
                 'active': active_cameras,
                 'online': online_cameras,
                 'health_percentage': round((online_cameras / total_cameras * 100) if total_cameras > 0 else 0, 1)
             },
-            'detection_metrics': {
-                'detections_today': detections_today,
-                'alerts_today': alerts_today,
-                'high_priority_alerts': Detection.objects(created_at__gte=today, alert_level='critical').count()
-            },
             'emergency_status': {
                 'unresolved': unresolved_emergencies,
                 'critical_pending': EmergencyAlert.objects(is_resolved=False, severity='critical').count()
-            },
-            'recent_detections': [
-                {
-                    'id': str(det.id),
-                    'object': det.detected_object,
-                    'confidence': det.confidence,
-                    'alert_level': det.alert_level,
-                    'timestamp': det.created_at.isoformat() if det.created_at else None,
-                    'camera_id': str(det.camera_trap.id)
-                }
-                for det in recent_detections
-            ]
+            }
         }
         
         return JsonResponse({
             'success': True,
-            'data': dashboard_data
+            'dashboard': dashboard_data
         }, status=200)
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Dashboard Error: {error_details}")
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': str(e),
+            'traceback': error_details
         }, status=500)
 
 
-@require_auth
-@require_role('admin')
-@require_http_methods(["GET"])
-def species_list(request):
-    """
-    List all species.
-    Supports filtering by conservation status.
-    """
-    try:
-        conservation_status = request.GET.get('status')
-        endangered_only = request.GET.get('endangered') == 'true'
-        
-        query = Species.objects.all()
-        
-        if conservation_status:
-            query = query.filter(conservation_status=conservation_status)
-        if endangered_only:
-            query = query.filter(is_endangered=True)
-        
-        species_list_data = [s.to_dict() for s in query]
-        
-        return JsonResponse({
-            'success': True,
-            'count': len(species_list_data),
-            'data': species_list_data
-        }, status=200)
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
-
-@csrf_exempt
-@require_auth
-@require_role('admin')
-@require_http_methods(["POST"])
-def create_species(request):
-    """
-    Create new species entry.
-    
-    Request body:
-    {
-        "name": "African Elephant",
-        "scientific_name": "Loxodonta africana",
-        "conservation_status": "Vulnerable",
-        "habitat": "Savanna, forest",
-        "is_endangered": true,
-        "poaching_risk_level": "high"
-    }
-    """
-    try:
-        data = json.loads(request.body)
-        
-        species = Species(
-            name=data.get('name'),
-            scientific_name=data.get('scientific_name'),
-            conservation_status=data.get('conservation_status', 'Least Concern'),
-            habitat=data.get('habitat'),
-            description=data.get('description'),
-            is_endangered=data.get('is_endangered', False),
-            poaching_risk_level=data.get('poaching_risk_level', 'low')
-        )
-        
-        species.save()
-        
-        # Log activity
-        ActivityLog(
-            user=User.objects.get(id=request.user_id),
-            action='created_species',
-            entity_type='Species',
-            entity_id=str(species.id),
-            details={'name': species.name}
-        ).save()
-        
-        return JsonResponse({
-            'success': True,
-            'species': species.to_dict()
-        }, status=201)
-        
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
-
-
-@csrf_exempt
-@require_auth
-@require_role('admin')
-@require_http_methods(["PUT"])
-def update_species(request, species_id):
-    """
-    Update species information.
-    """
-    try:
-        species = Species.objects.get(id=species_id)
-        data = json.loads(request.body)
-        
-        # Update fields
-        species.name = data.get('name', species.name)
-        species.scientific_name = data.get('scientific_name', species.scientific_name)
-        species.conservation_status = data.get('conservation_status', species.conservation_status)
-        species.habitat = data.get('habitat', species.habitat)
-        species.is_endangered = data.get('is_endangered', species.is_endangered)
-        species.poaching_risk_level = data.get('poaching_risk_level', species.poaching_risk_level)
-        species.updated_at = datetime.now()
-        
-        species.save()
-        
-        return JsonResponse({
-            'success': True,
-            'species': species.to_dict()
-        }, status=200)
-        
-    except Species.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Species not found'
-        }, status=404)
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
 
 @require_auth
@@ -224,25 +168,49 @@ def update_species(request, species_id):
 def camera_list(request):
     """
     List all camera traps.
-    Supports filtering by status and location.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     """
     try:
+        from pymongo import MongoClient
+        import certifi
+        from django.conf import settings
+        
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
         status_filter = request.GET.get('status')  # active, online, offline
         location = request.GET.get('location')
         
-        query = CameraTrap.objects.all()
+        query = {}
         
         if status_filter == 'active':
-            query = query.filter(is_active=True)
+            query['is_active'] = True
         elif status_filter == 'online':
-            query = query.filter(is_online=True)
+            query['is_online'] = True
         elif status_filter == 'offline':
-            query = query.filter(is_online=False)
+            query['is_online'] = False
         
         if location:
-            query = query.filter(location__icontains=location)
+            query['location'] = {'$regex': location, '$options': 'i'}
         
-        cameras = [c.to_dict(include_ranger=True) for c in query]
+        cameras_raw = list(db.camera_traps.find(query))
+        
+        cameras = []
+        for cam in cameras_raw:
+            cameras.append({
+                'id': str(cam.get('_id', '')),
+                'name': cam.get('name', ''),
+                'location': cam.get('location', ''),
+                'latitude': cam.get('latitude'),
+                'longitude': cam.get('longitude'),
+                'is_active': cam.get('is_active', False),
+                'is_online': cam.get('is_online', False),
+                'last_ping': cam.get('last_ping').isoformat() if cam.get('last_ping') else None,
+                'battery_level': cam.get('battery_level', 0),
+                'resolution': cam.get('resolution', ''),
+            })
+        
+        client.close()
         
         return JsonResponse({
             'success': True,
@@ -251,6 +219,8 @@ def camera_list(request):
         }, status=200)
         
     except Exception as e:
+        import traceback
+        print(f"Camera list error: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)
@@ -420,19 +390,33 @@ def resolve_emergency(request, alert_id):
 def system_monitoring(request):
     """
     Get system monitoring metrics.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     """
     try:
-        total_cameras = CameraTrap.objects.count()
-        active_cameras = CameraTrap.objects(is_active=True).count()
-        online_cameras = CameraTrap.objects(is_online=True).count()
+        from pymongo import MongoClient
+        import certifi
+        from django.conf import settings
         
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
+        # Camera metrics
+        total_cameras = db.camera_traps.count_documents({})
+        active_cameras = db.camera_traps.count_documents({'is_active': True})
+        inactive_cameras = total_cameras - active_cameras
+        
+        # Detection metrics
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        detections_today = Detection.objects(created_at__gte=today).count()
-        alerts_today = Detection.objects(created_at__gte=today, alert_level__in=['high', 'critical']).count()
+        detections_today = db.detections.count_documents({'created_at': {'$gte': today}})
+        alerts_today = db.detections.count_documents({
+            'created_at': {'$gte': today},
+            'alert_level': {'$in': ['high', 'critical']}
+        })
+        total_detections = db.detections.count_documents({})
         
         # False positive rate
-        total_verified = Detection.objects(is_verified=True).count()
-        false_positives = Detection.objects(false_positive=True).count()
+        total_verified = db.detections.count_documents({'is_verified': True})
+        false_positives = db.detections.count_documents({'false_positive': True})
         false_positive_rate = (false_positives / total_verified * 100) if total_verified > 0 else 0
         
         monitoring_data = {
@@ -440,13 +424,13 @@ def system_monitoring(request):
             'camera_metrics': {
                 'total_cameras': total_cameras,
                 'active_cameras': active_cameras,
-                'online_cameras': online_cameras,
-                'offline_cameras': total_cameras - online_cameras
+                'online_cameras': active_cameras,  # Use active as proxy for online
+                'offline_cameras': inactive_cameras  # Inactive cameras count
             },
             'detection_metrics': {
                 'detections_today': detections_today,
                 'alerts_today': alerts_today,
-                'total_detections': Detection.objects.count(),
+                'total_detections': total_detections,
                 'false_positive_rate': round(false_positive_rate, 2)
             },
             'system_health': {
@@ -456,12 +440,16 @@ def system_monitoring(request):
             }
         }
         
+        client.close()
+        
         return JsonResponse({
             'success': True,
             'data': monitoring_data
         }, status=200)
         
     except Exception as e:
+        import traceback
+        print(f"System monitoring error: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)

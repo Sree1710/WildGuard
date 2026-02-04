@@ -98,8 +98,8 @@ class User(Document):
     )
     is_active = BooleanField(default=True)
     
-    # Assigned camera traps (for field staff)
-    assigned_cameras = ListField(ReferenceField('CameraTrap'))
+    # Assigned camera traps (for field staff) - Store as ObjectId strings to avoid reference issues
+    assigned_cameras = ListField(ObjectIdField())
     
     # Metadata
     created_at = DateTimeField(default=datetime.now)
@@ -123,8 +123,11 @@ class User(Document):
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'last_login': self.last_login.isoformat() if self.last_login else None
         }
-        if include_sensitive:
-            data['assigned_cameras'] = [str(cam.id) for cam in self.assigned_cameras]
+        if include_sensitive and self.assigned_cameras:
+            try:
+                data['assigned_cameras'] = [str(cam.id) if hasattr(cam, 'id') else str(cam) for cam in self.assigned_cameras]
+            except Exception:
+                data['assigned_cameras'] = []
         return data
 
 
@@ -286,13 +289,22 @@ class Detection(Document):
     meta = {
         'collection': 'detections',
         'indexes': ['camera_trap', 'detected_object', 'alert_level', 'created_at'],
-        'ordering': ['-created_at']
     }
-    
+
     def to_dict(self, include_evidence=False):
+        try:
+            # Safe access to camera reference
+            camera_name = self.camera_trap.name if self.camera_trap else 'Unknown'
+            camera_location = self.camera_trap.location if self.camera_trap else 'Unknown'
+        except:
+            camera_name = 'Unknown'
+            camera_location = 'Unknown'
+            
         data = {
             'id': str(self.id),
-            'camera_trap_id': str(self.camera_trap.id),
+            'camera_trap_id': str(self.camera_trap.id) if self.camera_trap else None,
+            'camera_name': camera_name,
+            'camera_location': camera_location,
             'detection_type': self.detection_type,
             'detected_object': self.detected_object,
             'confidence': self.confidence,
@@ -301,16 +313,16 @@ class Detection(Document):
             'is_verified': self.is_verified,
             'false_positive': self.false_positive,
             'notes': self.notes,
-            'created_at': self.created_at.isoformat() if self.created_at else None
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'image_url': self.image_url if self.detection_type == 'image' else None,
+            'audio_url': self.audio_url if self.detection_type == 'audio' else None
         }
         
         if include_evidence:
-            if self.detection_type == 'image' and self.image_url:
-                data['image_url'] = self.image_url
-                data['objects'] = [obj.to_dict() for obj in self.objects_detected] if self.objects_detected else []
-            elif self.detection_type == 'audio' and self.audio_url:
-                data['audio_url'] = self.audio_url
-                data['classifications'] = [cls.to_dict() for cls in self.audio_classification_probabilities] if self.audio_classification_probabilities else []
+            if self.detection_type == 'image' and self.objects_detected:
+                data['objects'] = [obj.to_dict() for obj in self.objects_detected]
+            elif self.detection_type == 'audio' and self.audio_classification_probabilities:
+                data['classifications'] = [cls.to_dict() for cls in self.audio_classification_probabilities]
         
         return data
 

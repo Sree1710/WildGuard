@@ -9,7 +9,7 @@ from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from detection.models import Detection, User, ActivityLog
+from detection.models import Detection, User, ActivityLog, CameraTrap
 from accounts.auth import require_auth, require_role
 
 
@@ -48,10 +48,43 @@ def list_detections(request):
             query = query.filter(is_verified=verified_filter.lower() == 'true')
         
         # Pagination
+        # Pagination
         total = query.count()
-        detections = query[offset:offset + limit]
+        # Use as_pymongo() to avoid thread-local context issues
+        detections = list(query[offset:offset + limit].as_pymongo())
         
-        data = [det.to_dict() for det in detections]
+        # Helper to get camera details safely
+        camera_lookup = {str(c['_id']): c for c in CameraTrap.objects.as_pymongo()}
+        
+        data = []
+        for det in detections:
+            # Safe access to camera reference
+            cam_id = det.get('camera_trap')
+            camera = camera_lookup.get(str(cam_id)) if cam_id else None
+            
+            camera_name = camera.get('name', 'Unknown') if camera else 'Unknown'
+            camera_location = camera.get('location', 'Unknown') if camera else 'Unknown'
+            
+            detection_type = det.get('detection_type', 'image')
+            
+            item = {
+                'id': str(det.get('_id')),
+                'camera_trap_id': str(cam_id) if cam_id else None,
+                'camera_name': camera_name,
+                'camera_location': camera_location,
+                'detection_type': detection_type,
+                'detected_object': det.get('detected_object'),
+                'confidence': det.get('confidence'),
+                'alert_level': det.get('alert_level', 'none'),
+                'inference_time_ms': det.get('inference_time_ms'),
+                'is_verified': det.get('is_verified', False),
+                'false_positive': det.get('false_positive', False),
+                'notes': det.get('notes', ''),
+                'created_at': det.get('created_at').isoformat() if det.get('created_at') else None,
+                'image_url': det.get('image_url') if detection_type == 'image' else None,
+                'audio_url': det.get('audio_url') if detection_type == 'audio' else None
+            }
+            data.append(item)
         
         return JsonResponse({
             'success': True,
