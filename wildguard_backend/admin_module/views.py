@@ -24,45 +24,57 @@ from accounts.auth import require_auth, require_role
 @require_auth
 @require_role('admin')
 @require_http_methods(["GET"])
+@require_auth
+@require_role('admin')
+@require_http_methods(["GET"])
 def dashboard_view(request):
     """
     Admin dashboard statistics.
-    
     Returns overview of system health and detections.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     """
     try:
+        from pymongo import MongoClient
+        import certifi
+        from django.conf import settings
+        
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
         # Count statistics
-        total_cameras = CameraTrap.objects.count()
-        active_cameras = CameraTrap.objects(is_active=True).count()
-        online_cameras = CameraTrap.objects(is_online=True).count()
+        total_cameras = db.camera_traps.count_documents({})
+        active_cameras = db.camera_traps.count_documents({'is_active': True})
+        online_cameras = db.camera_traps.count_documents({'is_online': True})
         
         # Detections today
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        detections_today = Detection.objects(created_at__gte=today).count()
-        alerts_today = Detection.objects(created_at__gte=today, alert_level__in=['high', 'critical']).count()
+        detections_today = db.detections.count_documents({'created_at': {'$gte': today}})
+        alerts_today = db.detections.count_documents({
+            'created_at': {'$gte': today}, 
+            'alert_level': {'$in': ['high', 'critical']}
+        })
         
         # Count by detected object type
-        # Animals: any wildlife detection
-        animals_detected = Detection.objects(
-            created_at__gte=today, 
-            detected_object__nin=['human', 'person', 'chainsaw', 'gunshot', 'vehicle']
-        ).count()
-        # Human intrusions: humans or suspicious activity
-        human_intrusions = Detection.objects(
-            created_at__gte=today, 
-            detected_object__in=['human', 'person']
-        ).count()
+        animals_detected = db.detections.count_documents({
+            'created_at': {'$gte': today},
+            'detected_object': {'$nin': ['human', 'person', 'chainsaw', 'gunshot', 'vehicle', 'Human', 'Person', 'human_activity']}
+        })
+        
+        human_intrusions = db.detections.count_documents({
+            'created_at': {'$gte': today},
+            'detected_object': {'$in': ['human', 'person', 'Human', 'Person', 'human_activity']}
+        })
         
         # Unresolved emergencies
-        unresolved_emergencies = EmergencyAlert.objects(is_resolved=False).count()
+        unresolved_emergencies = db.emergency_alerts.count_documents({'is_resolved': False})
+        critical_pending = db.emergency_alerts.count_documents({'is_resolved': False, 'severity': 'critical'})
         
         # Recent activity (last 10 detections/alerts as activity feed)
-        # Note: Convert to list first to avoid MongoEngine thread-local context issues
-        recent_detections = list(Detection.objects.order_by('-created_at').limit(10).as_pymongo())
+        recent_detections = list(db.detections.find().sort('created_at', -1).limit(10))
         recent_activity = []
         
-        # Get camera names for lookup using raw pymongo to avoid thread-local issues
-        camera_lookup = {str(c['_id']): c.get('name', 'Unknown') for c in CameraTrap.objects.as_pymongo()}
+        # Get camera names for lookup
+        camera_lookup = {str(c['_id']): c.get('name', 'Unknown') for c in db.camera_traps.find()}
         
         for det in recent_detections:
             try:
@@ -98,21 +110,20 @@ def dashboard_view(request):
             day_start = (datetime.now() - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
             day_end = day_start + timedelta(days=1)
             
-            day_animals = Detection.objects(
-                created_at__gte=day_start, 
-                created_at__lt=day_end, 
-                detected_object__nin=['human', 'person', 'chainsaw', 'gunshot', 'vehicle']
-            ).count()
-            day_humans = Detection.objects(
-                created_at__gte=day_start, 
-                created_at__lt=day_end, 
-                detected_object__in=['human', 'person']
-            ).count()
-            day_suspicious = Detection.objects(
-                created_at__gte=day_start, 
-                created_at__lt=day_end, 
-                alert_level__in=['high', 'critical']
-            ).count()
+            day_base_query = {'created_at': {'$gte': day_start, '$lt': day_end}}
+            
+            day_animals = db.detections.count_documents({
+                **day_base_query,
+                'detected_object': {'$nin': ['human', 'person', 'chainsaw', 'gunshot', 'vehicle', 'Human', 'Person', 'human_activity']}
+            })
+            day_humans = db.detections.count_documents({
+                **day_base_query,
+                'detected_object': {'$in': ['human', 'person', 'Human', 'Person', 'human_activity']}
+            })
+            day_suspicious = db.detections.count_documents({
+                **day_base_query,
+                'alert_level': {'$in': ['high', 'critical']}
+            })
             
             trend_data.append({
                 'day': days[day_start.weekday()],
@@ -120,6 +131,8 @@ def dashboard_view(request):
                 'humans': day_humans,
                 'suspicious': day_suspicious
             })
+            
+        client.close()
         
         # Dashboard data matching frontend expectations
         dashboard_data = {
@@ -128,7 +141,7 @@ def dashboard_view(request):
             'animals_detected': animals_detected,
             'human_intrusions': human_intrusions,
             'alerts_today': alerts_today,
-            'active_cameras': online_cameras,
+            'active_cameras': active_cameras,  # Fixed: Use active_cameras count, not online
             'trend_data': trend_data,
             'recent_activity': recent_activity,
             'camera_status': {
@@ -139,7 +152,7 @@ def dashboard_view(request):
             },
             'emergency_status': {
                 'unresolved': unresolved_emergencies,
-                'critical_pending': EmergencyAlert.objects(is_resolved=False, severity='critical').count()
+                'critical_pending': critical_pending
             }
         }
         

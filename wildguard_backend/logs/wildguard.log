@@ -456,3 +456,67 @@ Watching for file changes with StatReloader
 "GET /api/user/dashboard/ HTTP/1.1" 200 2155
 Unauthorized: /api/user/alerts/
 "GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 401 70
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25539
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25539
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 398
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 398
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25539
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25539
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25539
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25539
+"GET /media/detections/20260204135847_3141_synthetic_human_0037.wav HTTP/1.1" 200 132344
+"GET /media/detections/20260204135847_9091_pexels_human_11598812.jpg HTTP/1.1" 200 14339
+"GET /media/detections/20260204135847_9374_pexels_animal_6052186.jpg HTTP/1.1" 200 18354
+"GET /media/detections/20260204135847_9816_pexels_animal_7558214.jpg HTTP/1.1" 200 22957
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 594
+"GET /api/user/dashboard/ HTTP/1.1" 200 2143
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 8719
+"GET /api/user/dashboard/ HTTP/1.1" 200 2143
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 8719
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 18760
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 18760
+"GET /media/detections/20260204135847_3141_synthetic_human_0037.wav HTTP/1.1" 304 0
+"GET /media/detections/20260204135847_9091_pexels_human_11598812.jpg HTTP/1.1" 304 0
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1014
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1014
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 784
+"GET /api/user/reports/pdf/?days=1&report_type=detections HTTP/1.1" 200 2823
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2260
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2256
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2256
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2258
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2268
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2271
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2271
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2271
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25578
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25578
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 398
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 398
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2271
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2271
