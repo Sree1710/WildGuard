@@ -13,6 +13,7 @@ from accounts import views as account_views
 # Include all app URLs
 urlpatterns = [
     # Authentication
+    path('api/auth/register/', account_views.register_view, name='register'),
     path('api/auth/login/', account_views.login_view, name='login'),
     path('api/auth/logout/', account_views.logout_view, name='logout'),
     path('api/auth/refresh/', account_views.refresh_token_view, name='refresh'),

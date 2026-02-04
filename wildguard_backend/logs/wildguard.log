@@ -410,3 +410,49 @@ Watching for file changes with StatReloader
 "GET /api/user/reports/pdf/?days=1&report_type=detections HTTP/1.1" 200 2829
 D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
 Watching for file changes with StatReloader
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 782
+"GET /api/user/reports/pdf/?days=1&report_type=detections HTTP/1.1" 200 2828
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 3342
+"GET /api/user/reports/?days=30&report_type=alerts HTTP/1.1" 200 863
+"OPTIONS /api/user/reports/pdf/?days=30&report_type=alerts HTTP/1.1" 200 0
+"GET /api/user/reports/pdf/?days=30&report_type=alerts HTTP/1.1" 200 2603
+"GET /api/user/reports/?days=30&report_type=animals HTTP/1.1" 200 1076
+"OPTIONS /api/user/reports/pdf/?days=30&report_type=animals HTTP/1.1" 200 0
+"GET /api/user/reports/pdf/?days=30&report_type=animals HTTP/1.1" 200 2839
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+Unauthorized: /api/auth/login/
+"POST /api/auth/login/ HTTP/1.1" 401 50
+D:\WildGuard MCA\wildguard_backend\accounts\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\config\urls.py changed, reloading.
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/register/ HTTP/1.1" 200 0
+"POST /api/auth/register/ HTTP/1.1" 201 635
+"POST /api/auth/login/ HTTP/1.1" 200 592
+"GET /api/user/dashboard/ HTTP/1.1" 200 2155
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 7974
+"GET /api/user/dashboard/ HTTP/1.1" 200 2155
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 7974
+"GET /api/user/dashboard/ HTTP/1.1" 200 2155
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 7974
+"GET /api/user/dashboard/ HTTP/1.1" 200 2155
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 7974
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"GET /api/user/dashboard/ HTTP/1.1" 200 2155
+Unauthorized: /api/user/alerts/
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 401 70

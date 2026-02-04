@@ -113,6 +113,77 @@ def login_view(request):
         }, status=500)
 
 
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def register_view(request):
+    """
+    User registration endpoint.
+    """
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email')
+        full_name = data.get('fullName')
+        
+        if not all([username, password, email, full_name]):
+            return JsonResponse({
+                'success': False,
+                'error': 'All fields are required'
+            }, status=400)
+            
+        db = get_db()
+        
+        # Check if user exists
+        if db.users.find_one({'username': username}):
+            return JsonResponse({'success': False, 'error': 'Username already exists'}, status=400)
+            
+        if db.users.find_one({'email': email}):
+            return JsonResponse({'success': False, 'error': 'Email already exists'}, status=400)
+            
+        # Hash password
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        # Create user
+        new_user = {
+            'username': username,
+            'email': email,
+            'full_name': full_name,
+            'password_hash': password_hash,
+            'role': 'user',  # Default role
+            'is_active': True,
+            'created_at': datetime.now(),
+            'last_login': None
+        }
+        
+        result = db.users.insert_one(new_user)
+        
+        # Auto-login
+        user_id = str(result.inserted_id)
+        access_token = JWTHandler.generate_token(user_id, 'user')
+        refresh_token = JWTHandler.generate_refresh_token(user_id)
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Account created successfully',
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'user': {
+                'id': user_id,
+                'username': username,
+                'email': email,
+                'name': full_name,
+                'role': 'user'
+            }
+        }, status=201)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
 @require_auth
 @require_http_methods(["POST"])
 def logout_view(request):

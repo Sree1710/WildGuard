@@ -114,6 +114,21 @@ class ApiService {
   // AUTH ENDPOINTS
   // =====================
 
+  async register(userData) {
+    const data = await this.request('/auth/register/', {
+      method: 'POST',
+      body: userData,
+      auth: false,
+    });
+
+    if (data.success) {
+      this.setTokens(data.access_token, data.refresh_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+
+    return data;
+  }
+
   async login(username, password) {
     const data = await this.request('/auth/login/', {
       method: 'POST',

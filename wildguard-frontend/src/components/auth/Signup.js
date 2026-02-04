@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaUser, FaArrowLeft, FaEnvelope, FaLock, FaIdCard } from 'react-icons/fa';
+import api from '../../services/api';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Signup = () => {
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +25,7 @@ const Signup = () => {
     setSuccess('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validation
@@ -49,11 +51,25 @@ const Signup = () => {
       return;
     }
 
-    // Success (in a real app, this would make an API call)
-    setSuccess('Account created successfully! Redirecting to login...');
-    setTimeout(() => {
-      navigate('/login');
-    }, 2000);
+    try {
+      setLoading(true);
+      const data = await api.register(formData);
+
+      if (data.success) {
+        setSuccess('Account created successfully! Redirecting...');
+        // Token is already set by api.register
+        setTimeout(() => {
+          navigate('/login'); // Direct to dashboard since we auto-login
+        }, 1500);
+      } else {
+        setError(data.error || 'Registration failed');
+      }
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError('Failed to create account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -62,7 +78,7 @@ const Signup = () => {
       <FormSection>
         <FormWrapper>
           <BackRow>
-            <BackButton type="button" onClick={() => navigate('/')}> 
+            <BackButton type="button" onClick={() => navigate('/')}>
               <FaArrowLeft /> Back to Home
             </BackButton>
           </BackRow>
