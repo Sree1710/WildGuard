@@ -47,3 +47,7 @@ python-dotenv==1.0.0
 
 # Optional: Mock data generation
 faker==21.0.0
+
+# PDF Generation
+reportlab==4.0.8
+certifi==2024.2.2

@@ -33,8 +33,6 @@ const Navbar = () => {
   const userLinks = [
     { path: '/user/dashboard', icon: <FaHome />, label: 'Dashboard' },
     { path: '/user/alerts', icon: <FaBell />, label: 'Alerts' },
-    { path: '/user/evidence', icon: <FaCamera />, label: 'Evidence' },
-    { path: '/user/timeline', icon: <FaChartLine />, label: 'Timeline' },
     { path: '/user/reports', icon: <FaFileAlt />, label: 'Reports' },
     { path: '/user/emergency', icon: <FaPhone />, label: 'Emergency' },
   ];

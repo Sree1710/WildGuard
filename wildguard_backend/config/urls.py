@@ -37,6 +37,7 @@ urlpatterns = [
     path('api/user/activity-timeline/', user_views.activity_timeline, name='activity_timeline'),
     path('api/user/evidence/<str:detection_id>/', user_views.evidence_viewer, name='evidence_viewer'),
     path('api/user/reports/', user_views.user_reports, name='user_reports'),
+    path('api/user/reports/pdf/', user_views.generate_pdf_report, name='generate_pdf_report'),
     path('api/user/emergency-info/', user_views.emergency_info, name='emergency_info'),
     path('api/user/dashboard/', user_views.user_dashboard, name='user_dashboard'),
 ]

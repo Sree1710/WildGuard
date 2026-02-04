@@ -143,3 +143,270 @@ Watching for file changes with StatReloader
 "GET /api/user/dashboard/ HTTP/1.1" 200 2121
 "GET /api/user/alerts/?severity=critical HTTP/1.1" 200 3459
 "POST /api/auth/logout/ HTTP/1.1" 200 55
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2236
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2236
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25275
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25275
+"GET /media/detections/20260201181529_9709_pexels_human_11598812.jpg HTTP/1.1" 200 14339
+"GET /media/detections/20260201174648_synthetic_human_0049.wav HTTP/1.1" 200 132344
+"OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 594
+"OPTIONS /api/user/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/user/dashboard/ HTTP/1.1" 200 0
+"GET /api/user/dashboard/ HTTP/1.1" 200 2112
+"OPTIONS /api/user/alerts/?severity=critical HTTP/1.1" 200 0
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2112
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2112
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2112
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2112
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2112
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2112
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2110
+"GET /api/user/alerts/?severity=critical HTTP/1.1" 200 2091
+"GET /api/user/dashboard/ HTTP/1.1" 200 2110
+"OPTIONS /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 0
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 41
+"GET /api/user/dashboard/ HTTP/1.1" 200 2110
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 41
+"GET /api/user/dashboard/ HTTP/1.1" 200 2110
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 41
+"GET /api/user/dashboard/ HTTP/1.1" 200 2110
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 41
+D:\WildGuard MCA\wildguard_backend\detection\detection_generator.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\detection_generator.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"OPTIONS /api/user/alerts/ HTTP/1.1" 200 0
+"OPTIONS /api/user/alerts/ HTTP/1.1" 200 0
+"GET /api/user/dashboard/ HTTP/1.1" 200 2125
+"GET /api/user/alerts/ HTTP/1.1" 200 11382
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 267
+"GET /api/user/alerts/ HTTP/1.1" 200 11382
+"GET /api/user/alerts/ HTTP/1.1" 200 11382
+"GET /api/user/alerts/ HTTP/1.1" 200 11382
+"OPTIONS /api/user/alerts/?days=2 HTTP/1.1" 200 0
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 2091
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 2091
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 2091
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 4518
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 4518
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 4518
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 4518
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 4518
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 4518
+"GET /media/detections/20260204123955_6753_synthetic_gunshot_0048.wav HTTP/1.1" 200 132344
+"GET /media/detections/20260204123955_1243_pexels_animal_14382743.jpg HTTP/1.1" 200 20479
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 4518
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"OPTIONS /api/user/alerts/?days=2&severity=low HTTP/1.1" 200 0
+"GET /api/user/alerts/?days=2&severity=low HTTP/1.1" 200 2205
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/dashboard/ HTTP/1.1" 200 2144
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 2306
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 6027
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2262
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2262
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25490
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25490
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"OPTIONS /api/admin/system-monitoring/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/system-monitoring/ HTTP/1.1" 200 0
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2259
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2259
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"OPTIONS /api/admin/cameras/ HTTP/1.1" 200 0
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+Internal Server Error: /api/admin/system-monitoring/
+"GET /api/admin/system-monitoring/ HTTP/1.1" 500 69
+Internal Server Error: /api/admin/system-monitoring/
+"GET /api/admin/system-monitoring/ HTTP/1.1" 500 69
+D:\WildGuard MCA\wildguard_backend\admin_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2272
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25624
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25624
+"GET /media/detections/20260204130536_1622_synthetic_human_0012.wav HTTP/1.1" 200 132344
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 397
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 594
+"GET /api/user/dashboard/ HTTP/1.1" 200 2150
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 4587
+"GET /api/user/dashboard/ HTTP/1.1" 200 2150
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 4587
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 13201
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 13201
+"GET /media/detections/20260204130536_7449_colt-1911_003_SA_055A_S01.wav HTTP/1.1" 200 44144
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"OPTIONS /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 0
+"OPTIONS /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 0
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1016
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"OPTIONS /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 0
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 748
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 748
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1016
+"OPTIONS /api/user/reports/?days=30&report_type=alerts HTTP/1.1" 200 0
+"GET /api/user/reports/?days=30&report_type=alerts HTTP/1.1" 200 863
+"OPTIONS /api/user/reports/?days=30&report_type=animals HTTP/1.1" 200 0
+"GET /api/user/reports/?days=30&report_type=animals HTTP/1.1" 200 1110
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 749
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/user/reports/?days=30&report_type=animals HTTP/1.1" 200 1074
+"GET /api/user/reports/?days=30&report_type=alerts HTTP/1.1" 200 863
+"GET /api/user/dashboard/ HTTP/1.1" 200 2138
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 4963
+"GET /api/user/dashboard/ HTTP/1.1" 200 2138
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 4963
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 16574
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 16574
+"GET /api/user/dashboard/ HTTP/1.1" 200 2138
+"GET /api/user/dashboard/ HTTP/1.1" 200 2138
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 4963
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 4963
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\config\urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1016
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\config\urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1016
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"OPTIONS /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 0
+Internal Server Error: /api/user/reports/pdf/
+"GET /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 500 58
+Watching for file changes with StatReloader
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6467
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6467
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+Internal Server Error: /api/user/reports/pdf/
+"GET /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 500 58
+Watching for file changes with StatReloader
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6467
+"GET /api/user/dashboard/ HTTP/1.1" 200 2126
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 3339
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 782
+"OPTIONS /api/user/reports/pdf/?days=1&report_type=detections HTTP/1.1" 200 0
+"GET /api/user/reports/pdf/?days=1&report_type=detections HTTP/1.1" 200 2829
+"GET /api/user/dashboard/ HTTP/1.1" 200 2124
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/dashboard/ HTTP/1.1" 200 2124
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6843
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 782
+"GET /api/user/reports/pdf/?days=1&report_type=detections HTTP/1.1" 200 2829
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader

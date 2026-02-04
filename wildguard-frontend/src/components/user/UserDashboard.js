@@ -28,11 +28,11 @@ const UserDashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       // Fetch user dashboard data
       const dashboardResponse = await api.getUserDashboard();
-      
+
       if (dashboardResponse.success) {
         const dashboard = dashboardResponse.dashboard;
         setStats({
@@ -41,7 +41,7 @@ const UserDashboard = () => {
           activeZones: dashboard.assigned_cameras || 0,
           recentDetections: dashboard.stats_today?.detections || 0
         });
-        
+
         // Convert recent detections to activity format
         if (dashboard.recent_detections) {
           setRecentActivity(dashboard.recent_detections.map(det => ({
@@ -52,13 +52,13 @@ const UserDashboard = () => {
           })));
         }
       }
-      
-      // Fetch alerts for critical alerts panel
-      const alertsResponse = await api.getUserAlerts({ severity: 'critical' });
+
+      // Fetch alerts for critical alerts panel (last 2 days only)
+      const alertsResponse = await api.getUserAlerts({ severity: 'critical', days: 2 });
       if (alertsResponse.success && alertsResponse.data) {
         setCriticalAlerts(alertsResponse.data.filter(a => a.severity === 'critical'));
       }
-      
+
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
       setError('Failed to load dashboard data. Using cached data.');
@@ -69,7 +69,7 @@ const UserDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-    
+
     // Refresh every 30 seconds
     const interval = setInterval(fetchDashboardData, 30000);
     return () => clearInterval(interval);
@@ -84,7 +84,7 @@ const UserDashboard = () => {
             <p>Real-time alerts and detection overview</p>
           </div>
           <RefreshButton onClick={fetchDashboardData} disabled={loading}>
-            <FaSync className={loading ? 'spinning' : ''} /> 
+            <FaSync className={loading ? 'spinning' : ''} />
             {loading ? 'Refreshing...' : 'Refresh'}
           </RefreshButton>
         </HeaderContent>

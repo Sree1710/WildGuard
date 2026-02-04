@@ -1,23 +1,90 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaServer, FaCamera, FaMemory, FaMicrochip, FaWifi, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
+import { FaServer, FaCamera, FaMemory, FaMicrochip, FaWifi, FaCheckCircle, FaExclamationTriangle, FaSync } from 'react-icons/fa';
 import { PageHeader, Section, Grid } from '../shared/Layout';
 import { Card } from '../shared/Card';
-import { systemHealthMetrics } from '../../data/mockData';
+import api from '../../services/api';
 
 /**
  * System Monitoring Component
- * Display system health and performance metrics
+ * Display real-time system health and performance metrics from API
  */
 const SystemMonitoring = () => {
-  const { cpuUsage, memoryUsage, diskUsage, networkLatency, activeCameras, totalCameras, detectionAccuracy, uptime } = systemHealthMetrics;
+  const [metrics, setMetrics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchMetrics = async () => {
+    try {
+      setLoading(true);
+      const response = await api.getSystemMonitoring();
+      if (response.success && response.data) {
+        setMetrics(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch monitoring data:', err);
+      setError('Failed to load monitoring data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMetrics();
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(fetchMetrics, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Show loading state
+  if (loading && !metrics) {
+    return (
+      <Container>
+        <PageHeader>
+          <h1>System Monitoring</h1>
+          <p>Loading metrics...</p>
+        </PageHeader>
+      </Container>
+    );
+  }
+
+  // Default values if metrics not available
+  const cameraMetrics = metrics?.camera_metrics || {
+    total_cameras: 0,
+    active_cameras: 0,
+    online_cameras: 0,
+    offline_cameras: 0
+  };
+
+  const detectionMetrics = metrics?.detection_metrics || {
+    detections_today: 0,
+    alerts_today: 0,
+    total_detections: 0,
+    false_positive_rate: 0
+  };
+
+  const systemHealth = metrics?.system_health || {
+    avg_inference_time_ms: 0,
+    database_size_mb: 0,
+    uptime_percentage: 99.9
+  };
 
   return (
     <Container>
       <PageHeader>
-        <h1>System Monitoring</h1>
-        <p>Monitor system health and performance metrics</p>
+        <HeaderContent>
+          <div>
+            <h1>System Monitoring</h1>
+            <p>Real-time system health and performance metrics</p>
+          </div>
+          <RefreshButton onClick={fetchMetrics} disabled={loading}>
+            <FaSync className={loading ? 'spinning' : ''} />
+            {loading ? 'Refreshing...' : 'Refresh'}
+          </RefreshButton>
+        </HeaderContent>
       </PageHeader>
+
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
       {/* System Status Overview */}
       <Section>
@@ -28,88 +95,49 @@ const SystemMonitoring = () => {
             </StatusIcon>
             <StatusInfo>
               <StatusTitle>System Status: Operational</StatusTitle>
-              <StatusUptime>Uptime: {uptime}</StatusUptime>
+              <StatusUptime>Uptime: {systemHealth.uptime_percentage}%</StatusUptime>
             </StatusInfo>
           </StatusHeader>
         </StatusCard>
       </Section>
 
-      {/* Performance Metrics */}
-      <Section>
-        <SectionTitle>Performance Metrics</SectionTitle>
-        <Grid columns="repeat(auto-fit, minmax(250px, 1fr))">
-          <MetricCard>
-            <MetricIcon color="#2196f3">
-              <FaMicrochip />
-            </MetricIcon>
-            <MetricContent>
-              <MetricLabel>CPU Usage</MetricLabel>
-              <ProgressBar>
-                <ProgressFill width={cpuUsage} color={getStatusColor(cpuUsage)}>
-                  {cpuUsage}%
-                </ProgressFill>
-              </ProgressBar>
-            </MetricContent>
-          </MetricCard>
-
-          <MetricCard>
-            <MetricIcon color="#9c27b0">
-              <FaMemory />
-            </MetricIcon>
-            <MetricContent>
-              <MetricLabel>Memory Usage</MetricLabel>
-              <ProgressBar>
-                <ProgressFill width={memoryUsage} color={getStatusColor(memoryUsage)}>
-                  {memoryUsage}%
-                </ProgressFill>
-              </ProgressBar>
-            </MetricContent>
-          </MetricCard>
-
-          <MetricCard>
-            <MetricIcon color="#ff9800">
-              <FaServer />
-            </MetricIcon>
-            <MetricContent>
-              <MetricLabel>Disk Usage</MetricLabel>
-              <ProgressBar>
-                <ProgressFill width={diskUsage} color={getStatusColor(diskUsage)}>
-                  {diskUsage}%
-                </ProgressFill>
-              </ProgressBar>
-            </MetricContent>
-          </MetricCard>
-
-          <MetricCard>
-            <MetricIcon color="#4caf50">
-              <FaWifi />
-            </MetricIcon>
-            <MetricContent>
-              <MetricLabel>Network Latency</MetricLabel>
-              <MetricValue>{networkLatency}ms</MetricValue>
-              <MetricSubtext>Average response time</MetricSubtext>
-            </MetricContent>
-          </MetricCard>
-        </Grid>
-      </Section>
-
-      {/* Camera Network Status */}
+      {/* Camera Network Status - Using Real Data */}
       <Section>
         <SectionTitle>Camera Network Status</SectionTitle>
-        <Grid columns="repeat(auto-fit, minmax(300px, 1fr))">
+        <Grid columns="repeat(auto-fit, minmax(250px, 1fr))">
           <CameraStatusCard>
             <CameraIcon status="active">
               <FaCamera />
             </CameraIcon>
             <CameraInfo>
+              <CameraLabel>Total Cameras</CameraLabel>
+              <CameraValue>{cameraMetrics.total_cameras}</CameraValue>
+            </CameraInfo>
+          </CameraStatusCard>
+
+          <CameraStatusCard>
+            <CameraIcon status="active">
+              <FaCheckCircle />
+            </CameraIcon>
+            <CameraInfo>
               <CameraLabel>Active Cameras</CameraLabel>
-              <CameraValue>{activeCameras} / {totalCameras}</CameraValue>
+              <CameraValue>{cameraMetrics.active_cameras}</CameraValue>
               <ProgressBar>
-                <ProgressFill 
-                  width={(activeCameras / totalCameras) * 100} 
+                <ProgressFill
+                  width={cameraMetrics.total_cameras > 0 ? (cameraMetrics.active_cameras / cameraMetrics.total_cameras) * 100 : 0}
                   color="#4caf50"
                 />
               </ProgressBar>
+            </CameraInfo>
+          </CameraStatusCard>
+
+          <CameraStatusCard>
+            <CameraIcon status="detection">
+              <FaWifi />
+            </CameraIcon>
+            <CameraInfo>
+              <CameraLabel>Online Cameras</CameraLabel>
+              <CameraValue>{cameraMetrics.online_cameras}</CameraValue>
             </CameraInfo>
           </CameraStatusCard>
 
@@ -119,70 +147,132 @@ const SystemMonitoring = () => {
             </CameraIcon>
             <CameraInfo>
               <CameraLabel>Offline Cameras</CameraLabel>
-              <CameraValue>{totalCameras - activeCameras}</CameraValue>
-              <OfflineList>
-                <li>CAM004 - East Sector</li>
-                <li>CAM008 - West Sector</li>
-                <li>CAM015 - South Sector</li>
-                <li>CAM022 - North Sector</li>
-              </OfflineList>
-            </CameraInfo>
-          </CameraStatusCard>
-
-          <CameraStatusCard>
-            <CameraIcon status="detection">
-              <FaCheckCircle />
-            </CameraIcon>
-            <CameraInfo>
-              <CameraLabel>Detection Accuracy</CameraLabel>
-              <CameraValue>{detectionAccuracy}%</CameraValue>
-              <MetricSubtext>AI model performance</MetricSubtext>
+              <CameraValue>{cameraMetrics.offline_cameras}</CameraValue>
             </CameraInfo>
           </CameraStatusCard>
         </Grid>
       </Section>
 
-      {/* System Alerts */}
+      {/* Detection Metrics */}
       <Section>
-        <SectionTitle>Recent System Alerts</SectionTitle>
-        <AlertsList>
-          <AlertItem severity="warning">
-            <AlertIcon>⚠️</AlertIcon>
-            <AlertContent>
-              <AlertTitle>Camera CAM008 offline for 2 hours</AlertTitle>
-              <AlertTime>2 hours ago</AlertTime>
-            </AlertContent>
-          </AlertItem>
-          <AlertItem severity="info">
-            <AlertIcon>ℹ️</AlertIcon>
-            <AlertContent>
-              <AlertTitle>System maintenance scheduled for tomorrow</AlertTitle>
-              <AlertTime>5 hours ago</AlertTime>
-            </AlertContent>
-          </AlertItem>
-          <AlertItem severity="success">
-            <AlertIcon>✅</AlertIcon>
-            <AlertContent>
-              <AlertTitle>Database backup completed successfully</AlertTitle>
-              <AlertTime>8 hours ago</AlertTime>
-            </AlertContent>
-          </AlertItem>
-        </AlertsList>
+        <SectionTitle>Detection Metrics</SectionTitle>
+        <Grid columns="repeat(auto-fit, minmax(250px, 1fr))">
+          <MetricCard>
+            <MetricIcon color="#2196f3">
+              <FaCamera />
+            </MetricIcon>
+            <MetricContent>
+              <MetricLabel>Detections Today</MetricLabel>
+              <MetricValue>{detectionMetrics.detections_today}</MetricValue>
+            </MetricContent>
+          </MetricCard>
+
+          <MetricCard>
+            <MetricIcon color="#f44336">
+              <FaExclamationTriangle />
+            </MetricIcon>
+            <MetricContent>
+              <MetricLabel>Alerts Today</MetricLabel>
+              <MetricValue>{detectionMetrics.alerts_today}</MetricValue>
+            </MetricContent>
+          </MetricCard>
+
+          <MetricCard>
+            <MetricIcon color="#9c27b0">
+              <FaServer />
+            </MetricIcon>
+            <MetricContent>
+              <MetricLabel>Total Detections</MetricLabel>
+              <MetricValue>{detectionMetrics.total_detections}</MetricValue>
+            </MetricContent>
+          </MetricCard>
+
+          <MetricCard>
+            <MetricIcon color="#ff9800">
+              <FaCheckCircle />
+            </MetricIcon>
+            <MetricContent>
+              <MetricLabel>False Positive Rate</MetricLabel>
+              <MetricValue>{detectionMetrics.false_positive_rate}%</MetricValue>
+            </MetricContent>
+          </MetricCard>
+        </Grid>
+      </Section>
+
+      {/* System Performance */}
+      <Section>
+        <SectionTitle>System Performance</SectionTitle>
+        <Grid columns="repeat(auto-fit, minmax(250px, 1fr))">
+          <MetricCard>
+            <MetricIcon color="#4caf50">
+              <FaMicrochip />
+            </MetricIcon>
+            <MetricContent>
+              <MetricLabel>Avg Inference Time</MetricLabel>
+              <MetricValue>{systemHealth.avg_inference_time_ms}ms</MetricValue>
+              <MetricSubtext>AI model processing time</MetricSubtext>
+            </MetricContent>
+          </MetricCard>
+
+          <MetricCard>
+            <MetricIcon color="#2196f3">
+              <FaMemory />
+            </MetricIcon>
+            <MetricContent>
+              <MetricLabel>Database Size</MetricLabel>
+              <MetricValue>{systemHealth.database_size_mb}MB</MetricValue>
+              <MetricSubtext>Total storage used</MetricSubtext>
+            </MetricContent>
+          </MetricCard>
+        </Grid>
       </Section>
     </Container>
   );
 };
 
-// Helper function to get status color based on percentage
-const getStatusColor = (percentage) => {
-  if (percentage < 60) return '#4caf50';  // Green
-  if (percentage < 80) return '#ff9800';  // Orange
-  return '#f44336';  // Red
-};
-
 // Styled Components
 const Container = styled.div`
   width: 100%;
+`;
+
+const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+`;
+
+const RefreshButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: ${props => props.theme.colors.primary};
+  color: white;
+  border: none;
+  border-radius: ${props => props.theme.borderRadius.md};
+  cursor: pointer;
+  font-size: 14px;
+  
+  &:hover { opacity: 0.9; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  
+  .spinning {
+    animation: spin 1s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+
+const ErrorBanner = styled.div`
+  background: #fff3cd;
+  color: #856404;
+  padding: 12px 16px;
+  border-radius: 4px;
+  margin: 16px 0;
 `;
 
 const StatusCard = styled(Card)`
@@ -268,7 +358,7 @@ const MetricSubtext = styled.div`
 
 const ProgressBar = styled.div`
   width: 100%;
-  height: 24px;
+  height: 8px;
   background: ${props => props.theme.colors.lightGray};
   border-radius: ${props => props.theme.borderRadius.md};
   overflow: hidden;
@@ -279,13 +369,7 @@ const ProgressFill = styled.div`
   width: ${props => props.width}%;
   height: 100%;
   background: ${props => props.color || props.theme.colors.primary};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: ${props => props.theme.fontSizes.sm};
-  font-weight: ${props => props.theme.fontWeights.semibold};
-  color: ${props => props.theme.colors.white};
-  transition: width ${props => props.theme.transitions.normal};
+  transition: width 0.3s ease;
 `;
 
 const CameraStatusCard = styled(Card)`
@@ -305,7 +389,7 @@ const CameraIcon = styled.div`
   font-size: 1.5rem;
   flex-shrink: 0;
   background: ${props => {
-    switch(props.status) {
+    switch (props.status) {
       case 'active': return props.theme.colors.success + '20';
       case 'inactive': return props.theme.colors.danger + '20';
       case 'detection': return props.theme.colors.info + '20';
@@ -313,7 +397,7 @@ const CameraIcon = styled.div`
     }
   }};
   color: ${props => {
-    switch(props.status) {
+    switch (props.status) {
       case 'active': return props.theme.colors.success;
       case 'inactive': return props.theme.colors.danger;
       case 'detection': return props.theme.colors.info;
@@ -337,63 +421,6 @@ const CameraValue = styled.div`
   font-weight: ${props => props.theme.fontWeights.bold};
   color: ${props => props.theme.colors.textPrimary};
   margin-bottom: ${props => props.theme.spacing.sm};
-`;
-
-const OfflineList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: ${props => props.theme.spacing.md} 0 0 0;
-  
-  li {
-    padding: ${props => props.theme.spacing.xs} 0;
-    font-size: ${props => props.theme.fontSizes.sm};
-    color: ${props => props.theme.colors.danger};
-    
-    &:before {
-      content: '• ';
-      margin-right: ${props => props.theme.spacing.xs};
-    }
-  }
-`;
-
-const AlertsList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: ${props => props.theme.spacing.md};
-`;
-
-const AlertItem = styled(Card)`
-  display: flex;
-  align-items: center;
-  gap: ${props => props.theme.spacing.md};
-  padding: ${props => props.theme.spacing.lg};
-  border-left: 4px solid ${props => {
-    switch(props.severity) {
-      case 'warning': return props.theme.colors.warning;
-      case 'success': return props.theme.colors.success;
-      case 'info': return props.theme.colors.info;
-      default: return props.theme.colors.gray;
-    }
-  }};
-`;
-
-const AlertIcon = styled.div`
-  font-size: 1.5rem;
-`;
-
-const AlertContent = styled.div`
-  flex: 1;
-`;
-
-const AlertTitle = styled.div`
-  font-weight: ${props => props.theme.fontWeights.medium};
-  color: ${props => props.theme.colors.textPrimary};
-  margin-bottom: ${props => props.theme.spacing.xs};
-`;
-
-const AlertTime = styled.div`
-  font-size: ${props => props.theme.fontSizes.sm};
-  color: ${props => props.theme.colors.textSecondary};
 `;
 
 export default SystemMonitoring;

@@ -54,8 +54,14 @@ def copy_media_file(source_path, media_root):
         return None
 
 
-def generate_detection_with_pymongo(db, media_root):
-    """Generate a single detection using raw pymongo."""
+def generate_detection_with_pymongo(db, media_root, force_audio=False):
+    """Generate a single detection using raw pymongo.
+    
+    Args:
+        db: MongoDB database instance
+        media_root: Path to media directory
+        force_audio: If True, always generate audio detection (gunshot/human)
+    """
     # Get cameras
     cameras = list(db.camera_traps.find({'is_active': True}))
     if not cameras:
@@ -65,12 +71,16 @@ def generate_detection_with_pymongo(db, media_root):
     camera = random.choice(cameras)
     datasets = get_dataset_paths()
     
-    # Weighted selection: 60% animal, 25% human, 15% audio
-    detection_type = random.choices(
-        ['animal', 'human', 'audio'],
-        weights=[60, 25, 15],
-        k=1
-    )[0]
+    # Force audio if requested, otherwise use weighted random selection
+    if force_audio:
+        detection_type = 'audio'
+    else:
+        # Weighted selection: 60% animal, 25% human, 15% audio
+        detection_type = random.choices(
+            ['animal', 'human', 'audio'],
+            weights=[60, 25, 15],
+            k=1
+        )[0]
     
     detection_doc = {
         '_id': ObjectId(),
@@ -212,10 +222,14 @@ def detection_generator_loop():
     
     while not _stop_event.is_set():
         try:
-            # Generate 1-3 detections
+            # Generate 1-3 random detections
             num_detections = random.randint(1, 3)
             for _ in range(num_detections):
                 generate_detection_with_pymongo(db, media_root)
+            
+            # Always generate at least one critical audio detection (gunshot or human)
+            # This ensures we have critical alerts every day
+            generate_detection_with_pymongo(db, media_root, force_audio=True)
             
             # Wait 2-5 minutes before next batch
             wait_time = random.randint(120, 300)

@@ -168,25 +168,49 @@ def dashboard_view(request):
 def camera_list(request):
     """
     List all camera traps.
-    Supports filtering by status and location.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     """
     try:
+        from pymongo import MongoClient
+        import certifi
+        from django.conf import settings
+        
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
         status_filter = request.GET.get('status')  # active, online, offline
         location = request.GET.get('location')
         
-        query = CameraTrap.objects.all()
+        query = {}
         
         if status_filter == 'active':
-            query = query.filter(is_active=True)
+            query['is_active'] = True
         elif status_filter == 'online':
-            query = query.filter(is_online=True)
+            query['is_online'] = True
         elif status_filter == 'offline':
-            query = query.filter(is_online=False)
+            query['is_online'] = False
         
         if location:
-            query = query.filter(location__icontains=location)
+            query['location'] = {'$regex': location, '$options': 'i'}
         
-        cameras = [c.to_dict(include_ranger=True) for c in query]
+        cameras_raw = list(db.camera_traps.find(query))
+        
+        cameras = []
+        for cam in cameras_raw:
+            cameras.append({
+                'id': str(cam.get('_id', '')),
+                'name': cam.get('name', ''),
+                'location': cam.get('location', ''),
+                'latitude': cam.get('latitude'),
+                'longitude': cam.get('longitude'),
+                'is_active': cam.get('is_active', False),
+                'is_online': cam.get('is_online', False),
+                'last_ping': cam.get('last_ping').isoformat() if cam.get('last_ping') else None,
+                'battery_level': cam.get('battery_level', 0),
+                'resolution': cam.get('resolution', ''),
+            })
+        
+        client.close()
         
         return JsonResponse({
             'success': True,
@@ -195,6 +219,8 @@ def camera_list(request):
         }, status=200)
         
     except Exception as e:
+        import traceback
+        print(f"Camera list error: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)
@@ -364,19 +390,33 @@ def resolve_emergency(request, alert_id):
 def system_monitoring(request):
     """
     Get system monitoring metrics.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     """
     try:
-        total_cameras = CameraTrap.objects.count()
-        active_cameras = CameraTrap.objects(is_active=True).count()
-        online_cameras = CameraTrap.objects(is_online=True).count()
+        from pymongo import MongoClient
+        import certifi
+        from django.conf import settings
         
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
+        # Camera metrics
+        total_cameras = db.camera_traps.count_documents({})
+        active_cameras = db.camera_traps.count_documents({'is_active': True})
+        inactive_cameras = total_cameras - active_cameras
+        
+        # Detection metrics
         today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        detections_today = Detection.objects(created_at__gte=today).count()
-        alerts_today = Detection.objects(created_at__gte=today, alert_level__in=['high', 'critical']).count()
+        detections_today = db.detections.count_documents({'created_at': {'$gte': today}})
+        alerts_today = db.detections.count_documents({
+            'created_at': {'$gte': today},
+            'alert_level': {'$in': ['high', 'critical']}
+        })
+        total_detections = db.detections.count_documents({})
         
         # False positive rate
-        total_verified = Detection.objects(is_verified=True).count()
-        false_positives = Detection.objects(false_positive=True).count()
+        total_verified = db.detections.count_documents({'is_verified': True})
+        false_positives = db.detections.count_documents({'false_positive': True})
         false_positive_rate = (false_positives / total_verified * 100) if total_verified > 0 else 0
         
         monitoring_data = {
@@ -384,13 +424,13 @@ def system_monitoring(request):
             'camera_metrics': {
                 'total_cameras': total_cameras,
                 'active_cameras': active_cameras,
-                'online_cameras': online_cameras,
-                'offline_cameras': total_cameras - online_cameras
+                'online_cameras': active_cameras,  # Use active as proxy for online
+                'offline_cameras': inactive_cameras  # Inactive cameras count
             },
             'detection_metrics': {
                 'detections_today': detections_today,
                 'alerts_today': alerts_today,
-                'total_detections': Detection.objects.count(),
+                'total_detections': total_detections,
                 'false_positive_rate': round(false_positive_rate, 2)
             },
             'system_health': {
@@ -400,12 +440,16 @@ def system_monitoring(request):
             }
         }
         
+        client.close()
+        
         return JsonResponse({
             'success': True,
             'data': monitoring_data
         }, status=200)
         
     except Exception as e:
+        import traceback
+        print(f"System monitoring error: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)
