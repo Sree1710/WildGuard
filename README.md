@@ -234,12 +234,6 @@ npm start
 - `activity_logs` – Audit trail
 - `system_metrics` – Performance data
 
----
-
-## 👥 Team
-
-- **Developer**: Sree
-- **Institution**: MCA Program
 
 ---
 
