@@ -135,7 +135,12 @@ const AlertsPage = () => {
             {alerts.map(alert => (
               <AlertCard key={alert.id} severity={alert.severity}>
                 <AlertHeader>
-                  <AlertBadge severity={alert.severity}>{alert.severity}</AlertBadge>
+                  <BadgeGroup>
+                    <AlertBadge severity={alert.severity}>{alert.severity}</AlertBadge>
+                    {!alert.is_verified && (
+                      <UnverifiedBadge>Unverified</UnverifiedBadge>
+                    )}
+                  </BadgeGroup>
                   <AlertStatus status={alert.status || 'Active'}>
                     {alert.status || 'Active'}
                   </AlertStatus>
@@ -216,6 +221,16 @@ const AlertsPage = () => {
               <DetailRow>
                 <DetailLabel>Status:</DetailLabel>
                 <DetailValue>{selectedAlert.status || 'Active'}</DetailValue>
+              </DetailRow>
+              <DetailRow>
+                <DetailLabel>Verified:</DetailLabel>
+                <DetailValue>
+                  {selectedAlert.is_verified ? (
+                    <VerifiedText>✓ Verified by Admin</VerifiedText>
+                  ) : (
+                    <UnverifiedText>⚠ Pending Verification</UnverifiedText>
+                  )}
+                </DetailValue>
               </DetailRow>
 
               {/* Image Evidence */}
@@ -417,6 +432,29 @@ const AlertStatus = styled.span`
   color: ${props => props.status === 'Active' ? '#155724' : '#6c757d'};
 `;
 
+const BadgeGroup = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const UnverifiedBadge = styled.span`
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  animation: pulse-orange 2s infinite;
+  
+  @keyframes pulse-orange {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+  }
+`;
+
 const AlertTitle = styled.h3`
   color: ${props => props.theme.colors.textPrimary};
   margin: 0 0 12px 0;
@@ -536,6 +574,18 @@ const DetailLabel = styled.span`
 
 const DetailValue = styled.span`
   color: #333;
+  display: flex;
+  align-items: center;
+`;
+
+const VerifiedText = styled.span`
+  color: #28a745;
+  font-weight: 600;
+`;
+
+const UnverifiedText = styled.span`
+  color: #ff9800;
+  font-weight: 600;
 `;
 
 const ModalActions = styled.div`

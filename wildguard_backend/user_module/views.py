@@ -28,6 +28,10 @@ def user_alerts(request):
     Get alerts for cameras.
     Uses raw pymongo to avoid MongoEngine thread-local issues.
     
+    Visibility Rules (Alert-Level Based):
+    - Critical/High alerts: Show immediately (with 'unverified' badge if not verified)
+    - Medium/Low alerts: Show only after admin verification
+    
     Query parameters:
     - level/severity: Filter by alert level (high, medium, critical)
     - days: Number of days to look back (default: 7)
@@ -50,11 +54,16 @@ def user_alerts(request):
         days = int(request.GET.get('days', 7))
         start_date = datetime.now() - timedelta(days=days)
         
-        # Build query
+        # Build query with alert-level based visibility
+        # Rule: Show if (verified=True) OR (alert_level in [critical, high])
         query = {
             'created_at': {'$gte': start_date},
             'camera_trap': {'$in': camera_ids},
-            'alert_level': {'$in': ['medium', 'high', 'critical']}
+            'alert_level': {'$in': ['medium', 'high', 'critical']},
+            '$or': [
+                {'is_verified': True},  # All verified detections
+                {'alert_level': {'$in': ['critical', 'high']}}  # Unverified but critical/high
+            ]
         }
         
         # Filter by severity/level if provided
@@ -68,6 +77,7 @@ def user_alerts(request):
         alerts = []
         for det in alerts_raw:
             cam_id = str(det.get('camera_trap', ''))
+            is_verified = det.get('is_verified', False)
             alerts.append({
                 'id': str(det.get('_id', '')),
                 'type': det.get('detected_object', 'unknown'),
@@ -79,7 +89,8 @@ def user_alerts(request):
                 'camera_name': camera_names.get(cam_id, 'Unknown'),
                 'confidence': det.get('confidence', 0),
                 'image_url': det.get('image_url'),
-                'audio_url': det.get('audio_url')
+                'audio_url': det.get('audio_url'),
+                'is_verified': is_verified  # Include for frontend badge
             })
         
         client.close()
@@ -591,10 +602,15 @@ def user_dashboard(request):
             'detected_object': {'$in': ['human', 'person', 'human_activity']}
         })
         
-        # Recent detections
-        recent_detections_raw = list(db.detections.find(
-            {'camera_trap': {'$in': camera_ids}}
-        ).sort('created_at', -1).limit(10))
+        # Recent detections with alert-level based visibility
+        # Rule: Show if (verified=True) OR (alert_level in [critical, high])
+        recent_detections_raw = list(db.detections.find({
+            'camera_trap': {'$in': camera_ids},
+            '$or': [
+                {'is_verified': True},  # All verified detections
+                {'alert_level': {'$in': ['critical', 'high']}}  # Unverified but critical/high
+            ]
+        }).sort('created_at', -1).limit(10))
         
         recent_detections = []
         for det in recent_detections_raw:
@@ -605,7 +621,8 @@ def user_dashboard(request):
                 'confidence': det.get('confidence', 0),
                 'alert_level': det.get('alert_level', 'low'),
                 'timestamp': det.get('created_at').isoformat() if det.get('created_at') else None,
-                'camera_name': camera_names.get(cam_id, 'Unknown')
+                'camera_name': camera_names.get(cam_id, 'Unknown'),
+                'is_verified': det.get('is_verified', False)  # Include for frontend badge
             })
         
         # Build user dict

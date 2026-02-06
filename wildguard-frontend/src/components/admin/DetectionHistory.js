@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { FaFilter, FaImage, FaSearch } from 'react-icons/fa';
+import { FaFilter, FaImage, FaSearch, FaCheck, FaTimes, FaExclamationTriangle } from 'react-icons/fa';
 import { PageHeader, Section, Badge } from '../shared/Layout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../shared/Table';
 import { Form, FormGroup, Label, Select, Input, FormRow } from '../shared/Form';
@@ -22,6 +22,8 @@ const DetectionHistory = () => {
   });
   const [selectedDetection, setSelectedDetection] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verificationNotes, setVerificationNotes] = useState('');
 
   // Fetch detections on mount
   React.useEffect(() => {
@@ -72,7 +74,36 @@ const DetectionHistory = () => {
   // View detection details
   const handleViewDetails = (detection) => {
     setSelectedDetection(detection);
+    setVerificationNotes(detection.notes || '');
     setIsDetailModalOpen(true);
+  };
+
+  // Handle verification
+  const handleVerify = async (isFalsePositive = false) => {
+    if (!selectedDetection) return;
+
+    setVerifying(true);
+    try {
+      const response = await api.verifyDetection(selectedDetection.id, {
+        verified: true,
+        false_positive: isFalsePositive,
+        notes: verificationNotes
+      });
+
+      if (response.success) {
+        // Update local state
+        setDetections(prev => prev.map(det =>
+          det.id === selectedDetection.id
+            ? { ...det, is_verified: true, false_positive: isFalsePositive, notes: verificationNotes }
+            : det
+        ));
+        setSelectedDetection(prev => ({ ...prev, is_verified: true, false_positive: isFalsePositive }));
+      }
+    } catch (error) {
+      console.error('Failed to verify detection:', error);
+    } finally {
+      setVerifying(false);
+    }
   };
 
   // Get badge variant based on detection type
@@ -173,14 +204,15 @@ const DetectionHistory = () => {
                 <TableHead>Timestamp</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Confidence</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow><TableCell colSpan="7">Loading detections...</TableCell></TableRow>
+                <TableRow><TableCell colSpan="8">Loading detections...</TableCell></TableRow>
               ) : detections.length === 0 ? (
-                <TableRow><TableCell colSpan="7">No detections found.</TableCell></TableRow>
+                <TableRow><TableCell colSpan="8">No detections found.</TableCell></TableRow>
               ) : (
                 detections.map((detection) => (
                   <TableRow key={detection.id}>
@@ -199,6 +231,17 @@ const DetectionHistory = () => {
                           {Math.round(detection.confidence * 100)}%
                         </ConfidenceFill>
                       </ConfidenceBar>
+                    </TableCell>
+                    <TableCell>
+                      {detection.is_verified ? (
+                        detection.false_positive ? (
+                          <VerificationBadge status="false_positive">False Positive</VerificationBadge>
+                        ) : (
+                          <VerificationBadge status="verified">Verified</VerificationBadge>
+                        )
+                      ) : (
+                        <VerificationBadge status="pending">Pending</VerificationBadge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <ViewButton onClick={() => handleViewDetails(detection)}>
@@ -280,6 +323,46 @@ const DetectionHistory = () => {
                 </ImagePlaceholder>
               )}
             </ImagePreview>
+
+            {/* Verification Section */}
+            <VerificationSection>
+              <VerificationHeader>
+                <h4>Verification Status</h4>
+                {selectedDetection.is_verified ? (
+                  selectedDetection.false_positive ? (
+                    <VerificationBadge status="false_positive">Marked as False Positive</VerificationBadge>
+                  ) : (
+                    <VerificationBadge status="verified">✓ Verified</VerificationBadge>
+                  )
+                ) : (
+                  <VerificationBadge status="pending">⏳ Pending Verification</VerificationBadge>
+                )}
+              </VerificationHeader>
+
+              {!selectedDetection.is_verified && (
+                <>
+                  <NotesInput
+                    placeholder="Add verification notes (optional)..."
+                    value={verificationNotes}
+                    onChange={(e) => setVerificationNotes(e.target.value)}
+                  />
+                  <VerificationActions>
+                    <VerifyButton onClick={() => handleVerify(false)} disabled={verifying}>
+                      <FaCheck /> {verifying ? 'Verifying...' : 'Verify as Correct'}
+                    </VerifyButton>
+                    <FalsePositiveButton onClick={() => handleVerify(true)} disabled={verifying}>
+                      <FaTimes /> Mark False Positive
+                    </FalsePositiveButton>
+                  </VerificationActions>
+                </>
+              )}
+
+              {selectedDetection.notes && (
+                <NotesDisplay>
+                  <strong>Notes:</strong> {selectedDetection.notes}
+                </NotesDisplay>
+              )}
+            </VerificationSection>
           </DetectionDetail>
         )}
       </Modal>
@@ -422,4 +505,141 @@ const ImagePlaceholder = styled.div`
   }
 `;
 
+// Verification Styled Components
+const VerificationBadge = styled.span`
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  ${props => {
+    switch (props.status) {
+      case 'verified':
+        return `
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+          color: white;
+        `;
+      case 'false_positive':
+        return `
+          background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+          color: white;
+        `;
+      case 'pending':
+      default:
+        return `
+          background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+          color: white;
+        `;
+    }
+  }}
+`;
+
+const VerificationSection = styled.div`
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 2px solid #e9ecef;
+`;
+
+const VerificationHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  
+  h4 {
+    margin: 0;
+    color: #333;
+  }
+`;
+
+const VerificationActions = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+`;
+
+const VerifyButton = styled.button`
+  flex: 1;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const FalsePositiveButton = styled.button`
+  flex: 1;
+  padding: 12px 20px;
+  background: #f8f9fa;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+  
+  &:hover:not(:disabled) {
+    background: #dc3545;
+    color: white;
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const NotesInput = styled.textarea`
+  width: 100%;
+  min-height: 80px;
+  padding: 12px;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: vertical;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    outline: none;
+    border-color: #28a745;
+  }
+  
+  &::placeholder {
+    color: #adb5bd;
+  }
+`;
+
+const NotesDisplay = styled.div`
+  margin-top: 16px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #495057;
+`;
+
 export default DetectionHistory;
+
