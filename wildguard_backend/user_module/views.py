@@ -351,8 +351,8 @@ def user_reports(request):
 @require_http_methods(["GET"])
 def generate_pdf_report(request):
     """
-    Generate a professional PDF report.
-    Uses reportlab for PDF generation.
+    Generate a professional PDF report with Google-quality design.
+    Uses reportlab for PDF generation with enhanced styling.
     """
     try:
         from pymongo import MongoClient
@@ -361,12 +361,16 @@ def generate_pdf_report(request):
         from django.http import HttpResponse
         from io import BytesIO
         from reportlab.lib import colors
-        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.pagesizes import A4, letter
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-        from reportlab.lib.units import inch
-        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-        from reportlab.lib.enums import TA_CENTER
+        from reportlab.lib.units import inch, cm
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable, KeepTogether
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+        from reportlab.graphics.shapes import Drawing, Rect, String
+        from reportlab.graphics.charts.barcharts import VerticalBarChart
+        from reportlab.graphics.charts.piecharts import Pie
         
+        # Connect to MongoDB
         client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
         db = client[settings.MONGO_DB]
         
@@ -380,27 +384,35 @@ def generate_pdf_report(request):
             
         end_date = datetime.now()
         
+        # Build query based on report type
         base_query = {'created_at': {'$gte': start_date}}
         human_objects = ['Human', 'human', 'Poacher', 'poacher', 'Vehicle', 'vehicle', 'Person', 'person']
         
         report_title = "Detection Report"
+        report_subtitle = "Comprehensive Wildlife Monitoring Analysis"
         if report_type == 'animals':
             base_query['detection_type'] = 'image'
             base_query['detected_object'] = {'$nin': human_objects}
             report_title = "Wildlife Activity Report"
+            report_subtitle = "Fauna Detection & Movement Patterns"
         elif report_type == 'humans':
             base_query['detected_object'] = {'$in': human_objects}
             report_title = "Human Activity Report"
+            report_subtitle = "Threat Detection & Security Analysis"
         elif report_type == 'alerts':
             base_query['alert_level'] = {'$in': ['high', 'critical']}
             report_title = "Critical Alerts Report"
+            report_subtitle = "High Priority Incident Summary"
         
+        # Gather statistics
         total_detections = db.detections.count_documents(base_query)
         image_detections = db.detections.count_documents({**base_query, 'detection_type': 'image'})
         audio_detections = db.detections.count_documents({**base_query, 'detection_type': 'audio'})
         critical_alerts = db.detections.count_documents({**base_query, 'alert_level': 'critical'})
         high_alerts = db.detections.count_documents({**base_query, 'alert_level': 'high'})
+        medium_alerts = db.detections.count_documents({**base_query, 'alert_level': 'medium'})
         
+        # Top detected objects
         pipeline = [
             {'$match': base_query},
             {'$group': {'_id': '$detected_object', 'count': {'$sum': 1}}},
@@ -409,74 +421,329 @@ def generate_pdf_report(request):
         ]
         top_objects = list(db.detections.aggregate(pipeline))
         
+        # Camera stats
         total_cameras = db.camera_traps.count_documents({})
         active_cameras = db.camera_traps.count_documents({'is_active': True})
         
         client.close()
         
-        # Create PDF
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=50, leftMargin=50, topMargin=50, bottomMargin=50)
+        # Define professional color palette
+        PRIMARY_GREEN = colors.HexColor('#2E7D32')
+        LIGHT_GREEN = colors.HexColor('#E8F5E9')
+        ACCENT_GREEN = colors.HexColor('#4CAF50')
+        DARK_TEXT = colors.HexColor('#1A1A1A')
+        GRAY_TEXT = colors.HexColor('#666666')
+        LIGHT_GRAY = colors.HexColor('#F5F5F5')
+        BORDER_GRAY = colors.HexColor('#E0E0E0')
+        CRITICAL_RED = colors.HexColor('#D32F2F')
+        HIGH_ORANGE = colors.HexColor('#F57C00')
+        MEDIUM_YELLOW = colors.HexColor('#FFA726')
+        INFO_BLUE = colors.HexColor('#1976D2')
         
+        # Create PDF with professional margins
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(
+            buffer, 
+            pagesize=A4, 
+            rightMargin=40, 
+            leftMargin=40, 
+            topMargin=40, 
+            bottomMargin=60
+        )
+        
+        # Custom styles
         styles = getSampleStyleSheet()
-        title_style = ParagraphStyle('CustomTitle', parent=styles['Title'], fontSize=22, spaceAfter=30, textColor=colors.HexColor('#1B5E20'), alignment=TA_CENTER)
-        heading_style = ParagraphStyle('CustomHeading', parent=styles['Heading2'], fontSize=14, spaceAfter=12, textColor=colors.HexColor('#2E7D32'), spaceBefore=20)
-        normal_style = styles['Normal']
+        
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Title'],
+            fontSize=28,
+            spaceAfter=5,
+            textColor=PRIMARY_GREEN,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold',
+            leading=34
+        )
+        
+        subtitle_style = ParagraphStyle(
+            'Subtitle',
+            parent=styles['Normal'],
+            fontSize=12,
+            spaceAfter=20,
+            textColor=GRAY_TEXT,
+            alignment=TA_CENTER,
+            fontName='Helvetica'
+        )
+        
+        heading_style = ParagraphStyle(
+            'CustomHeading',
+            parent=styles['Heading2'],
+            fontSize=16,
+            spaceAfter=15,
+            spaceBefore=25,
+            textColor=PRIMARY_GREEN,
+            fontName='Helvetica-Bold',
+            borderPadding=(0, 0, 5, 0)
+        )
+        
+        subheading_style = ParagraphStyle(
+            'SubHeading',
+            parent=styles['Normal'],
+            fontSize=11,
+            spaceAfter=10,
+            textColor=GRAY_TEXT,
+            fontName='Helvetica-Oblique'
+        )
+        
+        normal_style = ParagraphStyle(
+            'CustomNormal',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=DARK_TEXT,
+            fontName='Helvetica',
+            leading=14
+        )
         
         elements = []
         
-        elements.append(Paragraph(f"WildGuard {report_title}", title_style))
-        elements.append(Spacer(1, 10))
-        elements.append(Paragraph(f"<b>Period:</b> {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')} ({days} days)", normal_style))
-        elements.append(Paragraph(f"<b>Generated:</b> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", normal_style))
-        elements.append(Spacer(1, 20))
-        
-        elements.append(Paragraph("Summary Statistics", heading_style))
-        summary_data = [
-            ['Metric', 'Value'],
-            ['Total Detections', str(total_detections)],
-            ['Image Detections', str(image_detections)],
-            ['Audio Detections', str(audio_detections)],
-            ['Critical Alerts', str(critical_alerts)],
-            ['High Priority Alerts', str(high_alerts)],
-            ['Active Cameras', f"{active_cameras} / {total_cameras}"],
-        ]
-        summary_table = Table(summary_data, colWidths=[3*inch, 2*inch])
-        summary_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#2E7D32')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#E8F5E9')),
-            ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#81C784')),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        # ===== HEADER SECTION =====
+        # Brand header with decorative line
+        header_data = [[
+            Paragraph("🦁 WILDGUARD", ParagraphStyle('Brand', fontSize=14, textColor=PRIMARY_GREEN, fontName='Helvetica-Bold')),
+            Paragraph("Anti-Poaching Intelligence System", ParagraphStyle('Tagline', fontSize=9, textColor=GRAY_TEXT, alignment=TA_RIGHT))
+        ]]
+        header_table = Table(header_data, colWidths=[3*inch, 4*inch])
+        header_table.setStyle(TableStyle([
+            ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
         ]))
-        elements.append(summary_table)
+        elements.append(header_table)
+        
+        # Decorative line
+        elements.append(HRFlowable(width="100%", thickness=2, color=ACCENT_GREEN, spaceAfter=20))
+        
+        # ===== TITLE SECTION =====
+        elements.append(Paragraph(report_title, title_style))
+        elements.append(Paragraph(report_subtitle, subtitle_style))
+        
+        # Report metadata box
+        period_text = f"<b>Report Period:</b> {start_date.strftime('%B %d, %Y')} — {end_date.strftime('%B %d, %Y')}"
+        generated_text = f"<b>Generated:</b> {datetime.now().strftime('%B %d, %Y at %I:%M %p')}"
+        
+        meta_data = [[
+            Paragraph(period_text, ParagraphStyle('Meta', fontSize=10, textColor=DARK_TEXT)),
+            Paragraph(generated_text, ParagraphStyle('Meta', fontSize=10, textColor=DARK_TEXT, alignment=TA_RIGHT))
+        ]]
+        meta_table = Table(meta_data, colWidths=[3.5*inch, 3.5*inch])
+        meta_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), LIGHT_GREEN),
+            ('BOX', (0, 0), (-1, -1), 1, ACCENT_GREEN),
+            ('TOPPADDING', (0, 0), (-1, -1), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('LEFTPADDING', (0, 0), (-1, -1), 15),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(meta_table)
+        elements.append(Spacer(1, 25))
+        
+        # ===== EXECUTIVE SUMMARY =====
+        elements.append(Paragraph("📊 Executive Summary", heading_style))
+        elements.append(Paragraph("Key performance indicators for the reporting period", subheading_style))
+        
+        # Metric cards in a grid (2x3)
+        def create_metric_cell(value, label, color):
+            return [
+                Paragraph(f"<font size='24' color='{color}'><b>{value}</b></font>", 
+                         ParagraphStyle('MetricValue', alignment=TA_CENTER, leading=30)),
+                Paragraph(f"<font size='9' color='#666666'>{label}</font>", 
+                         ParagraphStyle('MetricLabel', alignment=TA_CENTER))
+            ]
+        
+        metrics_row1 = [
+            create_metric_cell(str(total_detections), "Total Detections", "#1976D2"),
+            create_metric_cell(str(image_detections), "Image Detections", "#4CAF50"),
+            create_metric_cell(str(audio_detections), "Audio Detections", "#9C27B0"),
+        ]
+        
+        metrics_row2 = [
+            create_metric_cell(str(critical_alerts), "Critical Alerts", "#D32F2F"),
+            create_metric_cell(str(high_alerts), "High Priority", "#F57C00"),
+            create_metric_cell(f"{active_cameras}/{total_cameras}", "Active Cameras", "#00BCD4"),
+        ]
+        
+        metrics_data = [
+            [metrics_row1[0], metrics_row1[1], metrics_row1[2]],
+            [metrics_row2[0], metrics_row2[1], metrics_row2[2]],
+        ]
+        
+        # Flatten the nested structure for table
+        flat_metrics = []
+        for row in [metrics_row1, metrics_row2]:
+            flat_row = []
+            for cell in row:
+                # Create a mini table for each cell
+                cell_table = Table([[cell[0]], [cell[1]]], colWidths=[2.2*inch])
+                cell_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('TOPPADDING', (0, 0), (-1, -1), 8),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ]))
+                flat_row.append(cell_table)
+            flat_metrics.append(flat_row)
+        
+        metrics_table = Table(flat_metrics, colWidths=[2.4*inch, 2.4*inch, 2.4*inch])
+        metrics_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+            ('BOX', (0, 0), (0, 0), 1, BORDER_GRAY),
+            ('BOX', (1, 0), (1, 0), 1, BORDER_GRAY),
+            ('BOX', (2, 0), (2, 0), 1, BORDER_GRAY),
+            ('BOX', (0, 1), (0, 1), 1, BORDER_GRAY),
+            ('BOX', (1, 1), (1, 1), 1, BORDER_GRAY),
+            ('BOX', (2, 1), (2, 1), 1, BORDER_GRAY),
+            ('TOPPADDING', (0, 0), (-1, -1), 15),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ]))
+        elements.append(metrics_table)
         elements.append(Spacer(1, 20))
         
-        if top_objects:
-            elements.append(Paragraph("Top Detected Objects", heading_style))
-            top_data = [['Rank', 'Object', 'Count']]
-            for i, obj in enumerate(top_objects, 1):
-                top_data.append([str(i), obj['_id'] or 'Unknown', str(obj['count'])])
-            top_table = Table(top_data, colWidths=[0.8*inch, 3*inch, 1.2*inch])
-            top_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1565C0')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        # ===== ALERT SEVERITY BREAKDOWN =====
+        if critical_alerts > 0 or high_alerts > 0 or medium_alerts > 0:
+            elements.append(Paragraph("🚨 Alert Severity Analysis", heading_style))
+            elements.append(Paragraph("Distribution of alerts by priority level", subheading_style))
+            
+            severity_data = [
+                ['Severity Level', 'Count', 'Status'],
+                ['🔴 Critical', str(critical_alerts), 'Immediate Action Required'],
+                ['🟠 High', str(high_alerts), 'Priority Response Needed'],
+                ['🟡 Medium', str(medium_alerts), 'Monitor & Review'],
+            ]
+            
+            severity_table = Table(severity_data, colWidths=[2*inch, 1.5*inch, 3*inch])
+            severity_table.setStyle(TableStyle([
+                # Header
+                ('BACKGROUND', (0, 0), (-1, 0), PRIMARY_GREEN),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#E3F2FD')),
-                ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#90CAF9')),
-                ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                # Body
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('ALIGN', (0, 1), (0, -1), 'LEFT'),
+                ('ALIGN', (1, 1), (1, -1), 'CENTER'),
+                ('ALIGN', (2, 1), (2, -1), 'LEFT'),
+                # Row colors - alternating
+                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#FFEBEE')),
+                ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor('#FFF3E0')),
+                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#FFFDE7')),
+                # Grid
+                ('GRID', (0, 0), (-1, -1), 0.5, BORDER_GRAY),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 12),
+            ]))
+            elements.append(severity_table)
+            elements.append(Spacer(1, 20))
+        
+        # ===== TOP DETECTED OBJECTS =====
+        if top_objects:
+            elements.append(Paragraph("🐾 Top Detected Objects", heading_style))
+            elements.append(Paragraph("Most frequently detected species and objects", subheading_style))
+            
+            top_data = [['Rank', 'Object/Species', 'Detection Count', 'Percentage']]
+            total_for_percent = sum(obj['count'] for obj in top_objects) if top_objects else 1
+            
+            for i, obj in enumerate(top_objects, 1):
+                percentage = f"{(obj['count'] / total_for_percent * 100):.1f}%"
+                rank_emoji = "🥇" if i == 1 else ("🥈" if i == 2 else ("🥉" if i == 3 else f"#{i}"))
+                top_data.append([
+                    rank_emoji,
+                    obj['_id'] or 'Unknown',
+                    str(obj['count']),
+                    percentage
+                ])
+            
+            top_table = Table(top_data, colWidths=[0.8*inch, 3*inch, 1.5*inch, 1.2*inch])
+            top_table.setStyle(TableStyle([
+                # Header
+                ('BACKGROUND', (0, 0), (-1, 0), INFO_BLUE),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 11),
+                ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+                # Body
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
+                ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+                ('ALIGN', (1, 1), (1, -1), 'LEFT'),
+                ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
+                # Alternating rows
+                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#E3F2FD')),
+                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#E3F2FD')),
+                ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor('#E3F2FD')),
+                ('BACKGROUND', (0, 7), (-1, 7), colors.HexColor('#E3F2FD')),
+                ('BACKGROUND', (0, 9), (-1, 9), colors.HexColor('#E3F2FD')),
+                # Grid
+                ('GRID', (0, 0), (-1, -1), 0.5, BORDER_GRAY),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
             ]))
             elements.append(top_table)
+            elements.append(Spacer(1, 20))
         
+        # ===== CAMERA STATUS =====
+        elements.append(Paragraph("📷 Camera System Status", heading_style))
+        elements.append(Paragraph("Overview of camera trap network operational status", subheading_style))
+        
+        inactive_cameras = total_cameras - active_cameras
+        camera_data = [
+            ['Status', 'Count', 'Percentage'],
+            ['🟢 Active', str(active_cameras), f"{(active_cameras/max(total_cameras,1)*100):.1f}%"],
+            ['🔴 Inactive', str(inactive_cameras), f"{(inactive_cameras/max(total_cameras,1)*100):.1f}%"],
+            ['📊 Total', str(total_cameras), "100%"],
+        ]
+        
+        camera_table = Table(camera_data, colWidths=[2.5*inch, 2*inch, 2*inch])
+        camera_table.setStyle(TableStyle([
+            # Header
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#00838F')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 11),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            # Body
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('ALIGN', (0, 1), (-1, -1), 'CENTER'),
+            # Row colors
+            ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#E0F7FA')),
+            ('BACKGROUND', (0, 2), (-1, 2), colors.HexColor('#FFEBEE')),
+            ('BACKGROUND', (0, 3), (-1, 3), LIGHT_GRAY),
+            ('FONTNAME', (0, 3), (-1, 3), 'Helvetica-Bold'),
+            # Grid
+            ('GRID', (0, 0), (-1, -1), 0.5, BORDER_GRAY),
+            ('TOPPADDING', (0, 0), (-1, -1), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ]))
+        elements.append(camera_table)
+        
+        # ===== FOOTER =====
         elements.append(Spacer(1, 40))
-        footer_style = ParagraphStyle('Footer', parent=normal_style, fontSize=9, textColor=colors.gray, alignment=TA_CENTER)
-        elements.append(Paragraph("Generated by WildGuard Anti-Poaching System", footer_style))
+        elements.append(HRFlowable(width="100%", thickness=1, color=BORDER_GRAY, spaceAfter=15))
         
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=normal_style,
+            fontSize=9,
+            textColor=GRAY_TEXT,
+            alignment=TA_CENTER
+        )
+        elements.append(Paragraph("This report was automatically generated by WildGuard Anti-Poaching System", footer_style))
+        elements.append(Paragraph("© 2025 WildGuard | Protecting Wildlife Through Intelligent Monitoring", footer_style))
+        
+        # Build PDF
         doc.build(elements)
         
         pdf = buffer.getvalue()

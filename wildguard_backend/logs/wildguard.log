@@ -641,3 +641,100 @@ Watching for file changes with StatReloader
 "GET /api/detections/?limit=50 HTTP/1.1" 200 25557
 "GET /media/detections/20260206125036_4935_synthetic_gunshot_0021.wav HTTP/1.1" 200 132344
 "POST /api/auth/logout/ HTTP/1.1" 200 55
+Watching for file changes with StatReloader
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2252
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2252
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25533
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25533
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 396
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 396
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2252
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2252
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2252
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 594
+"GET /api/user/dashboard/ HTTP/1.1" 200 2359
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/dashboard/ HTTP/1.1" 200 2359
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2264
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25576
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25576
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2264
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 396
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 396
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2264
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2264
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 594
+"GET /api/user/dashboard/ HTTP/1.1" 200 2359
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/dashboard/ HTTP/1.1" 200 2359
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 8763
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 8763
+"GET /api/user/dashboard/ HTTP/1.1" 200 2359
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/dashboard/ HTTP/1.1" 200 2359
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/dashboard/ HTTP/1.1" 200 2365
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/dashboard/ HTTP/1.1" 200 2365
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/dashboard/ HTTP/1.1" 200 2365
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1018
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1014
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 8374
+"GET /api/user/dashboard/ HTTP/1.1" 200 2366
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 8374
+"OPTIONS /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 0
+"GET /api/user/dashboard/ HTTP/1.1" 200 2366
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1017
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6821
+"GET /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 3349
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1013
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 5461
+D:\WildGuard MCA\wildguard_backend\user_module\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Internal Server Error: /api/user/dashboard/
+"GET /api/user/dashboard/ HTTP/1.1" 500 703
+Internal Server Error: /api/user/alerts/
+"GET /api/user/alerts/?days=2 HTTP/1.1" 500 703
+Internal Server Error: /api/user/dashboard/
+"GET /api/user/dashboard/ HTTP/1.1" 500 703
+Internal Server Error: /api/user/alerts/
+"GET /api/user/alerts/?days=2 HTTP/1.1" 500 703
+Internal Server Error: /api/user/alerts/
+"GET /api/user/alerts/?days=2 HTTP/1.1" 500 703
+Internal Server Error: /api/user/alerts/
+"GET /api/user/alerts/?days=2 HTTP/1.1" 500 404
+Watching for file changes with StatReloader
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 8363
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1014
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1014
+"OPTIONS /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 0
+"GET /api/user/reports/?days=1&report_type=detections HTTP/1.1" 200 676
+"OPTIONS /api/user/reports/?days=30&report_type=alerts HTTP/1.1" 200 0
+"GET /api/user/reports/?days=30&report_type=alerts HTTP/1.1" 200 938
+"OPTIONS /api/user/reports/?days=30&report_type=animals HTTP/1.1" 200 0
+"GET /api/user/reports/?days=30&report_type=animals HTTP/1.1" 200 1184
+"GET /api/user/dashboard/ HTTP/1.1" 200 2355
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6032
+"GET /api/user/dashboard/ HTTP/1.1" 200 2355
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6032
+"POST /api/auth/logout/ HTTP/1.1" 200 55

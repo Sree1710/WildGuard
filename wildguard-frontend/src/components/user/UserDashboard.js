@@ -143,21 +143,23 @@ const UserDashboard = () => {
             <AlertPanelHeader>
               <h3>🚨 Critical Alerts - Immediate Action Required</h3>
             </AlertPanelHeader>
-            {criticalAlerts.map(alert => (
-              <CriticalAlertCard key={alert.id}>
-                <AlertCardHeader>
-                  <AlertBadge severity={alert.severity}>{alert.severity}</AlertBadge>
-                  <AlertType>{alert.type}</AlertType>
-                </AlertCardHeader>
-                <AlertLocation>
-                  <FaMapMarkerAlt /> {alert.location}
-                </AlertLocation>
-                <AlertDescription>{alert.description}</AlertDescription>
-                <AlertTime>
-                  <FaClock /> {alert.timestamp}
-                </AlertTime>
-              </CriticalAlertCard>
-            ))}
+            <AlertsGrid>
+              {criticalAlerts.map(alert => (
+                <CriticalAlertCard key={alert.id}>
+                  <AlertCardHeader>
+                    <AlertBadge severity={alert.severity}>{alert.severity}</AlertBadge>
+                    <AlertType>{alert.type}</AlertType>
+                  </AlertCardHeader>
+                  <AlertLocation>
+                    <FaMapMarkerAlt /> {alert.location}
+                  </AlertLocation>
+                  <AlertDescription>{alert.description}</AlertDescription>
+                  <AlertTime>
+                    <FaClock /> {alert.timestamp}
+                  </AlertTime>
+                </CriticalAlertCard>
+              ))}
+            </AlertsGrid>
           </AlertPanel>
         </Section>
       )}
@@ -270,6 +272,24 @@ const AlertPanelHeader = styled.div`
     color: ${props => props.theme.colors.critical};
     margin: 0;
     font-size: ${props => props.theme.fontSizes.xl};
+  }
+`;
+
+const AlertsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: ${props => props.theme.spacing.md};
+  
+  @media (max-width: 1400px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
   }
 `;
 
