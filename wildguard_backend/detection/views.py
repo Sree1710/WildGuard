@@ -5,12 +5,23 @@ Core detection API endpoints.
 """
 
 import json
+import traceback
 from datetime import datetime
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from detection.models import Detection, User, ActivityLog, CameraTrap
 from accounts.auth import require_auth, require_role
+
+# Fix for mongoengine threading issue - ensure thread-local context is properly initialized
+from mongoengine.context_managers import thread_locals as _me_thread_locals
+
+def _ensure_thread_context():
+    """Ensure thread-local context is properly initialized for mongoengine."""
+    if not hasattr(_me_thread_locals, 'no_dereferencing_class'):
+        _me_thread_locals.no_dereferencing_class = set()
+
+print("=== DETECTION VIEWS MODULE LOADED ===")
 
 
 @require_auth
@@ -138,9 +149,9 @@ def detection_detail(request, detection_id):
 
 
 @csrf_exempt
+@require_http_methods(["POST"])
 @require_auth
 @require_role('admin')
-@require_http_methods(["POST"])
 def verify_detection(request, detection_id):
     """
     Verify a detection as true positive or false positive.
@@ -153,16 +164,29 @@ def verify_detection(request, detection_id):
     }
     """
     try:
+        print(f"DEBUG: Starting verify for detection_id={detection_id}")
+        print(f"DEBUG: user_id={request.user_id}")
+        
+        # Fix mongoengine threading issue
+        _ensure_thread_context()
+        
         detection = Detection.objects.get(id=detection_id)
+        print(f"DEBUG: Detection found: {detection.id}")
+        
         current_user = User.objects.get(id=request.user_id)
+        print(f"DEBUG: User found: {current_user.id}")
+        
         data = json.loads(request.body)
+        print(f"DEBUG: Request data: {data}")
         
         detection.is_verified = data.get('verified', False)
         detection.false_positive = data.get('false_positive', False)
         detection.notes = data.get('notes', '')
         detection.verified_by = current_user
         
+        print("DEBUG: About to save...")
         detection.save()
+        print("DEBUG: Save complete")
         
         # Log activity
         ActivityLog(
@@ -175,18 +199,38 @@ def verify_detection(request, detection_id):
                 'false_positive': detection.false_positive
             }
         ).save()
+        print("DEBUG: Activity logged")
         
+        # Build response manually to avoid reference issues
+        response_data = {
+            'id': str(detection.id),
+            'is_verified': detection.is_verified,
+            'false_positive': detection.false_positive,
+            'notes': detection.notes,
+            'verified_by': str(current_user.id)
+        }
+        
+        print("DEBUG: Returning success response")
         return JsonResponse({
             'success': True,
-            'detection': detection.to_dict()
+            'detection': response_data
         }, status=200)
         
     except Detection.DoesNotExist:
+        print("DEBUG: Detection not found")
         return JsonResponse({
             'success': False,
             'error': 'Detection not found'
         }, status=404)
+    except User.DoesNotExist:
+        print("DEBUG: User not found")
+        return JsonResponse({
+            'success': False,
+            'error': 'User not found'
+        }, status=404)
     except Exception as e:
+        print(f"VERIFY ERROR: {type(e).__name__}: {e}")
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': str(e)

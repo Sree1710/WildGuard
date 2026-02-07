@@ -738,3 +738,114 @@ Watching for file changes with StatReloader
 "GET /api/user/dashboard/ HTTP/1.1" 200 2355
 "GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 6032
 "POST /api/auth/logout/ HTTP/1.1" 200 55
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2282
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2282
+"OPTIONS /api/admin/cameras/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/cameras/ HTTP/1.1" 200 0
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25690
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25690
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25690
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25690
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /media/detections/20260207205848_6792_1-19111-A-24.wav HTTP/1.1" 200 441044
+"GET /media/detections/20260206141604_4796_ak-12_003_3__87_.wav HTTP/1.1" 200 44144
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2282
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2282
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25690
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25690
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"OPTIONS /api/detections/69875a309c24ab6d275b6c42/verify/ HTTP/1.1" 200 0
+Internal Server Error: /api/detections/69875a309c24ab6d275b6c42/verify/
+"POST /api/detections/69875a309c24ab6d275b6c42/verify/ HTTP/1.1" 500 96
+Internal Server Error: /api/detections/69875a309c24ab6d275b6c42/verify/
+"POST /api/detections/69875a309c24ab6d275b6c42/verify/ HTTP/1.1" 500 96
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2263
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25703
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25703
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2263
+"GET /media/detections/20260207210343_1254_synthetic_gunshot_0023.wav HTTP/1.1" 200 132344
+"OPTIONS /api/detections/69875b57fd6d09827a02c625/verify/ HTTP/1.1" 200 0
+Internal Server Error: /api/detections/69875b57fd6d09827a02c625/verify/
+"POST /api/detections/69875b57fd6d09827a02c625/verify/ HTTP/1.1" 500 96
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25665
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25665
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /media/detections/20260207210530_2909_synthetic_gunshot_0031.wav HTTP/1.1" 200 132344
+"OPTIONS /api/detections/69875bc2cf9af2956224a623/verify/ HTTP/1.1" 200 0
+Internal Server Error: /api/detections/69875bc2cf9af2956224a623/verify/
+"POST /api/detections/69875bc2cf9af2956224a623/verify/ HTTP/1.1" 500 96
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+Unauthorized: /api/detections/69875bc2cf9af2956224a623/verify/
+"POST /api/detections/69875bc2cf9af2956224a623/verify/ HTTP/1.1" 401 44
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"OPTIONS /api/admin/system-monitoring/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/system-monitoring/ HTTP/1.1" 200 0
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 399
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 399
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2256
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25623
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25623
+"GET /media/detections/20260207210849_6978_colt-1911_003_SA_055A_S01.wav HTTP/1.1" 200 44144
+"OPTIONS /api/detections/69875c89eca0b66b2f2eaf78/verify/ HTTP/1.1" 200 0
+Internal Server Error: /api/detections/69875c89eca0b66b2f2eaf78/verify/
+"POST /api/detections/69875c89eca0b66b2f2eaf78/verify/ HTTP/1.1" 500 96
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2256
+D:\WildGuard MCA\wildguard_backend\accounts\auth.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\config\settings.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2279
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2279
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2278
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25587
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25587
+"GET /media/detections/20260207211322_6737_synthetic_gunshot_0039.wav HTTP/1.1" 200 132344
+"OPTIONS /api/detections/69875d9a5f76162f11575726/verify/ HTTP/1.1" 200 0
+Internal Server Error: /api/detections/69875d9a5f76162f11575726/verify/
+"POST /api/detections/69875d9a5f76162f11575726/verify/ HTTP/1.1" 500 96
+D:\WildGuard MCA\wildguard_backend\detection\views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2270
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25601
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2270
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25601
+"GET /media/detections/20260207211456_6787_synthetic_human_0015.wav HTTP/1.1" 200 132344
+"OPTIONS /api/detections/69875df897b17cb0f2a5be62/verify/ HTTP/1.1" 200 0
+"POST /api/detections/69875df897b17cb0f2a5be62/verify/ HTTP/1.1" 200 168
+"GET /media/detections/20260207211456_7293_pexels_animal_32416153.jpg HTTP/1.1" 200 24763
+"OPTIONS /api/detections/69875df897b17cb0f2a5be61/verify/ HTTP/1.1" 200 0
+"POST /api/detections/69875df897b17cb0f2a5be61/verify/ HTTP/1.1" 200 168
+"GET /media/detections/20260207211456_1299_pexels_human_15954879.jpg HTTP/1.1" 200 26185
+"OPTIONS /api/detections/69875df897b17cb0f2a5be5f/verify/ HTTP/1.1" 200 0
+"POST /api/detections/69875df897b17cb0f2a5be5f/verify/ HTTP/1.1" 200 167

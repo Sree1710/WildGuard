@@ -122,30 +122,39 @@ def require_auth(func):
     """
     @wraps(func)
     def wrapper(request, *args, **kwargs):
-        # Extract token from Authorization header
-        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-        
-        if not auth_header.startswith('Bearer '):
+        try:
+            # Extract token from Authorization header
+            auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+            
+            if not auth_header.startswith('Bearer '):
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Missing or invalid Authorization header'
+                }, status=401)
+            
+            token = auth_header.split(' ')[1]
+            
+            is_valid, payload = JWTHandler.verify_token(token)
+            
+            if not is_valid:
+                return JsonResponse({
+                    'success': False,
+                    'error': payload.get('error', 'Invalid token')
+                }, status=401)
+            
+            # Attach user info to request
+            request.user_id = payload.get('user_id')
+            request.user_role = payload.get('role')
+            
+            return func(request, *args, **kwargs)
+        except Exception as e:
+            import traceback
+            print(f"AUTH DECORATOR ERROR: {e}")
+            traceback.print_exc()
             return JsonResponse({
                 'success': False,
-                'error': 'Missing or invalid Authorization header'
-            }, status=401)
-        
-        token = auth_header.split(' ')[1]
-        
-        is_valid, payload = JWTHandler.verify_token(token)
-        
-        if not is_valid:
-            return JsonResponse({
-                'success': False,
-                'error': payload.get('error', 'Invalid token')
-            }, status=401)
-        
-        # Attach user info to request
-        request.user_id = payload.get('user_id')
-        request.user_role = payload.get('role')
-        
-        return func(request, *args, **kwargs)
+                'error': f'Authentication error: {str(e)}'
+            }, status=500)
     
     return wrapper
 
@@ -158,19 +167,28 @@ def require_role(required_role):
     def decorator(func):
         @wraps(func)
         def wrapper(request, *args, **kwargs):
-            if not hasattr(request, 'user_role'):
+            try:
+                if not hasattr(request, 'user_role'):
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Authentication required'
+                    }, status=401)
+                
+                if request.user_role != required_role and required_role != 'any':
+                    return JsonResponse({
+                        'success': False,
+                        'error': f'Requires {required_role} role'
+                    }, status=403)
+                
+                return func(request, *args, **kwargs)
+            except Exception as e:
+                import traceback
+                print(f"ROLE DECORATOR ERROR: {e}")
+                traceback.print_exc()
                 return JsonResponse({
                     'success': False,
-                    'error': 'Authentication required'
-                }, status=401)
-            
-            if request.user_role != required_role and required_role != 'any':
-                return JsonResponse({
-                    'success': False,
-                    'error': f'Requires {required_role} role'
-                }, status=403)
-            
-            return func(request, *args, **kwargs)
+                    'error': f'Authorization error: {str(e)}'
+                }, status=500)
         
         return wrapper
     return decorator
