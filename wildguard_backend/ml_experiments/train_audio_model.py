@@ -435,7 +435,17 @@ def compare_models(X, y):
     models.append(('Random Forest', rf_model, None))  # RF doesn't need scaling
     
     # Find best model by F1-score
-    best_result = max(results, key=lambda x: x['f1_score'])
+    # When there's a tie in F1-score, prefer Random Forest (as documented in abstract)
+    best_f1 = max(r['f1_score'] for r in results)
+    tied_models = [r for r in results if r['f1_score'] == best_f1]
+    
+    # Prefer Random Forest if it's among the tied models
+    if len(tied_models) > 1:
+        rf_result = [r for r in tied_models if r['name'] == 'Random Forest']
+        best_result = rf_result[0] if rf_result else tied_models[0]
+    else:
+        best_result = tied_models[0]
+    
     best_model_name = best_result['name']
     best_model_data = [m for m in models if m[0] == best_model_name][0]
     

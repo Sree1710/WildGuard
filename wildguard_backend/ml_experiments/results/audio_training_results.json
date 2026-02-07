@@ -1,6 +1,6 @@
 {
     "experiment_name": "Audio Classification - Wildlife Monitoring",
-    "date": "2026-01-31 16:48:14",
+    "date": "2026-02-07 20:57:16",
     "dataset": {
         "source": "Kaggle (Manual Download)",
         "categories": [
@@ -56,7 +56,7 @@
         }
     ],
     "best_model": {
-        "name": "SVM",
+        "name": "Random Forest",
         "f1_score": 0.9312169312169313,
         "reason": "Highest F1-score - best balance of precision and recall"
     }
