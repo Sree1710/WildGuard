@@ -1,0 +1,37 @@
+# Logs
+*.log
+wildguard_backend/logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Django
+db.sqlite3
+wildguard_backend/media/detections/
+
+# Node
+wildguard-frontend/node_modules/
+wildguard-frontend/build/
+
+# Environment
+.env
+.env.local
