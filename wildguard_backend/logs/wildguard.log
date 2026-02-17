@@ -876,3 +876,108 @@ Watching for file changes with StatReloader
 "GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1001
 "GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 1001
 "POST /api/auth/logout/ HTTP/1.1" 200 55
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2258
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2258
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2258
+"OPTIONS /api/admin/cameras/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/cameras/ HTTP/1.1" 200 0
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25660
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25660
+"GET /media/detections/20260210093518_1468_synthetic_gunshot_0028.wav HTTP/1.1" 200 132344
+"GET /media/detections/20260207211746_7456_synthetic_human_0036.wav HTTP/1.1" 200 132344
+"GET /media/detections/20260207211456_7293_pexels_animal_32416153.jpg HTTP/1.1" 304 0
+"OPTIONS /api/admin/system-monitoring/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/system-monitoring/ HTTP/1.1" 200 0
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 398
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25660
+"GET /api/admin/system-monitoring/ HTTP/1.1" 200 398
+"GET /api/detections/?limit=50 HTTP/1.1" 200 25660
+"OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 594
+"OPTIONS /api/user/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/user/dashboard/ HTTP/1.1" 200 0
+"GET /api/user/dashboard/ HTTP/1.1" 200 2356
+"OPTIONS /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 0
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 835
+"GET /api/user/dashboard/ HTTP/1.1" 200 2356
+"GET /api/user/alerts/?severity=critical&days=2 HTTP/1.1" 200 835
+"OPTIONS /api/user/alerts/?days=2 HTTP/1.1" 200 0
+"OPTIONS /api/user/alerts/?days=2 HTTP/1.1" 200 0
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 835
+"GET /api/user/alerts/?days=2 HTTP/1.1" 200 835
+"OPTIONS /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 0
+"OPTIONS /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 0
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 965
+"OPTIONS /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 0
+"GET /api/user/reports/?days=7&report_type=detections HTTP/1.1" 200 965
+"GET /api/user/reports/pdf/?days=7&report_type=detections HTTP/1.1" 200 5445
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/dashboard/ HTTP/1.1" 200 0
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2247
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2247
+"OPTIONS /api/admin/cameras/ HTTP/1.1" 200 0
+"OPTIONS /api/admin/cameras/ HTTP/1.1" 200 0
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"GET /api/admin/cameras/ HTTP/1.1" 200 1207
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"OPTIONS /api/detections/?limit=50 HTTP/1.1" 200 0
+"GET /api/detections/?limit=50 HTTP/1.1" 200 30857
+"GET /api/detections/?limit=50 HTTP/1.1" 200 30857
+"GET /media/detections/20260217204728_5055_pexels_human_15954879.jpg HTTP/1.1" 200 26185
+"GET /media/detections/20260217204728_4525_synthetic_gunshot_0032.wav HTTP/1.1" 200 132344
+"GET /api/detections/?limit=50 HTTP/1.1" 200 30978
+Watching for file changes with StatReloader
+"GET /media/detections/20260217204947_5157_pexels_animal_33531971.jpg HTTP/1.1" 200 28030
+"GET /media/detections/20260217204947_7378_synthetic_human_0029.wav HTTP/1.1" 200 132344
+D:\WildGuard MCA\wildguard_backend\detection\detection_generator.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"OPTIONS /api/auth/logout/ HTTP/1.1" 200 0
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2265
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2265
+"GET /api/detections/?limit=50 HTTP/1.1" 200 31203
+"GET /api/detections/?limit=50 HTTP/1.1" 200 31203
+"GET /media/detections/20260217205419_1247_humanintrusion9.jpg HTTP/1.1" 200 92501
+"GET /media/detections/20260217205419_8811_synthetic_human_0035.wav HTTP/1.1" 200 132344
+"GET /media/detections/20260217205107_7432_fox4.jpg HTTP/1.1" 200 18664
+"GET /media/detections/20260217205107_3134_synthetic_gunshot_0038.wav HTTP/1.1" 200 132344
+"GET /media/detections/20260217205419_8743_synthetic_human_0036.wav HTTP/1.1" 200 132344
+"GET /api/detections/?limit=50 HTTP/1.1" 200 31203
+"GET /api/detections/?limit=50 HTTP/1.1" 200 31203
+"GET /media/detections/20260217205300_1702_pexels_human_13697232.jpg HTTP/1.1" 200 14663
+"GET /media/detections/20260217205300_1779_synthetic_gunshot_0037.wav HTTP/1.1" 200 132344
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2256
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2256
+Watching for file changes with StatReloader
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+"POST /api/auth/login/ HTTP/1.1" 200 591
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2268
+"GET /api/admin/dashboard/ HTTP/1.1" 200 2268
+"GET /api/detections/?limit=50 HTTP/1.1" 200 31367
+"GET /api/detections/?limit=50 HTTP/1.1" 200 31367
+"GET /media/detections/20260217205837_2233_synthetic_gunshot_0017.wav HTTP/1.1" 200 132344
+"GET /media/detections/20260217205837_2122_bear2.jpg HTTP/1.1" 200 205213
+"GET /media/detections/20260217205749_5035_pexels_human_20526367.jpg HTTP/1.1" 200 15776
+"GET /media/detections/20260217205749_9686_synthetic_human_0027.wav HTTP/1.1" 200 132344
+D:\WildGuard MCA\wildguard_backend\detection\detection_generator.py changed, reloading.
+Watching for file changes with StatReloader
+"POST /api/auth/logout/ HTTP/1.1" 200 55
+Watching for file changes with StatReloader

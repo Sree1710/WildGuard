@@ -106,18 +106,19 @@ const DetectionHistory = () => {
     }
   };
 
-  // Get badge variant based on detection type
-  const getTypeBadgeVariant = (type) => {
-    const map = {
-      'animal': 'success',
-      'human': 'warning',
-      'vehicle': 'danger',
-      'gunshot': 'danger',
-    };
-    // Map detected_object or backend type to badge
+  // Get badge variant based on detected object and alert level
+  const getTypeBadgeVariant = (type, alertLevel) => {
+    // Critical/high-threat fused labels
+    if (['armed_poacher', 'confirmed_poacher', 'armed_vehicle', 'illegal_logging'].includes(type)) return 'danger';
+    // Alert-level based (covers fused + regular detections)
+    if (['critical', 'high'].includes(alertLevel)) return 'danger';
+    // Known threat types
+    if (['gunshot', 'vehicle', 'chainsaw', 'human_activity'].includes(type)) return 'danger';
+    // Human presence
     if (type === 'human') return 'warning';
-    if (['gunshot', 'vehicle'].includes(type)) return 'danger';
-    return 'success'; // Default to animal
+    if (alertLevel === 'medium') return 'warning';
+    // Wildlife / low alert
+    return 'success';
   };
 
   return (
@@ -218,7 +219,7 @@ const DetectionHistory = () => {
                   <TableRow key={detection.id}>
                     <TableCell>{detection.id.substring(0, 8)}...</TableCell>
                     <TableCell>
-                      <Badge variant={getTypeBadgeVariant(detection.detected_object)}>
+                      <Badge variant={getTypeBadgeVariant(detection.detected_object, detection.alert_level)}>
                         {detection.detection_type}
                       </Badge>
                     </TableCell>
@@ -273,7 +274,7 @@ const DetectionHistory = () => {
               <DetailItem>
                 <DetailLabel>Type</DetailLabel>
                 <DetailValue>
-                  <Badge variant={getTypeBadgeVariant(selectedDetection.detected_object)}>
+                  <Badge variant={getTypeBadgeVariant(selectedDetection.detected_object, selectedDetection.alert_level)}>
                     {selectedDetection.detection_type}
                   </Badge>
                 </DetailValue>
@@ -297,7 +298,62 @@ const DetectionHistory = () => {
             </DetailGrid>
 
             <ImagePreview>
-              {selectedDetection.detection_type === 'audio' ? (
+              {selectedDetection.detection_type === 'fused' ? (
+                <>
+                  {/* Fused Detection: Show BOTH image and audio */}
+                  <FusedBadge>🔗 Late Fusion — Visual + Audio Combined</FusedBadge>
+
+                  {/* Image evidence */}
+                  {selectedDetection.image_url ? (
+                    <img
+                      src={selectedDetection.image_url}
+                      alt={selectedDetection.detected_object}
+                      style={{ width: '100%', borderRadius: '8px', maxHeight: '400px', objectFit: 'contain', marginBottom: '16px' }}
+                      onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400x300?text=Image+Load+Error'; }}
+                    />
+                  ) : (
+                    <ImagePlaceholder>
+                      <FaImage size={40} />
+                      <p>No Image Available</p>
+                    </ImagePlaceholder>
+                  )}
+
+                  {/* Audio evidence */}
+                  <div style={{ width: '100%', padding: '16px', background: '#f8f9fa', borderRadius: '8px', marginBottom: '16px' }}>
+                    <div style={{ fontSize: '24px', marginBottom: '8px' }}>🔊 Audio Evidence</div>
+                    {selectedDetection.audio_url ? (
+                      <audio controls style={{ width: '100%' }}>
+                        <source src={selectedDetection.audio_url} type="audio/wav" />
+                        Your browser does not support the audio element.
+                      </audio>
+                    ) : (
+                      <p>No audio file available</p>
+                    )}
+                  </div>
+
+                  {/* Fusion confidence breakdown */}
+                  <FusionDetails>
+                    <FusionTitle>Fusion Confidence Breakdown</FusionTitle>
+                    <FusionGrid>
+                      <FusionItem>
+                        <FusionLabel>📷 Visual</FusionLabel>
+                        <FusionValue>{selectedDetection.visual_confidence ? Math.round(selectedDetection.visual_confidence * 100) + '%' : 'N/A'}</FusionValue>
+                      </FusionItem>
+                      <FusionItem>
+                        <FusionLabel>🔊 Audio</FusionLabel>
+                        <FusionValue>{selectedDetection.audio_confidence ? Math.round(selectedDetection.audio_confidence * 100) + '%' : 'N/A'}</FusionValue>
+                      </FusionItem>
+                      <FusionItem highlight>
+                        <FusionLabel>🔗 Fused</FusionLabel>
+                        <FusionValue>{selectedDetection.fusion_confidence ? Math.round(selectedDetection.fusion_confidence * 100) + '%' : 'N/A'}</FusionValue>
+                      </FusionItem>
+                    </FusionGrid>
+                    {selectedDetection.fusion_method && (
+                      <FusionMethod>Method: {selectedDetection.fusion_method}</FusionMethod>
+                    )}
+                  </FusionDetails>
+                </>
+              ) : selectedDetection.detection_type === 'audio' ? (
                 <div style={{ width: '100%', padding: '20px', textAlign: 'center', background: '#f8f9fa', borderRadius: '8px' }}>
                   <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔊</div>
                   {selectedDetection.audio_url ? (
@@ -639,6 +695,67 @@ const NotesDisplay = styled.div`
   border-radius: 8px;
   font-size: 14px;
   color: #495057;
+`;
+
+// Late Fusion Styled Components
+const FusedBadge = styled.div`
+  background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: center;
+  margin-bottom: 16px;
+`;
+
+const FusionDetails = styled.div`
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 16px;
+`;
+
+const FusionTitle = styled.div`
+  font-weight: 600;
+  font-size: 14px;
+  color: #495057;
+  margin-bottom: 12px;
+`;
+
+const FusionGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+`;
+
+const FusionItem = styled.div`
+  text-align: center;
+  padding: 12px;
+  background: ${props => props.highlight ? 'linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%)' : 'white'};
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  color: ${props => props.highlight ? 'white' : 'inherit'};
+`;
+
+const FusionLabel = styled.div`
+  font-size: 12px;
+  margin-bottom: 4px;
+  opacity: 0.85;
+`;
+
+const FusionValue = styled.div`
+  font-size: 22px;
+  font-weight: 700;
+`;
+
+const FusionMethod = styled.div`
+  margin-top: 10px;
+  font-size: 12px;
+  color: #6c757d;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 `;
 
 export default DetectionHistory;

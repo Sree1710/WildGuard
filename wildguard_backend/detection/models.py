@@ -252,7 +252,7 @@ class Detection(Document):
     # Detection type
     detection_type = StringField(
         required=True,
-        choices=['image', 'audio'],
+        choices=['image', 'audio', 'fused'],
         default='image'
     )
     
@@ -271,6 +271,12 @@ class Detection(Document):
     # Audio-specific (if detection_type == 'audio')
     audio_url = URLField()
     audio_classification_probabilities = ListField(EmbeddedDocumentField(AudioProbability))
+    
+    # Late fusion fields (populated when detection_type == 'fused')
+    visual_confidence = FloatField(min_value=0, max_value=1)  # Image model's raw confidence
+    audio_confidence = FloatField(min_value=0, max_value=1)   # Audio model's raw confidence
+    fusion_confidence = FloatField(min_value=0, max_value=1)  # Combined late-fusion score
+    fusion_method = StringField()  # e.g., 'weighted_average'
     
     # Metadata
     inference_time_ms = FloatField()  # Model inference time
@@ -314,8 +320,13 @@ class Detection(Document):
             'false_positive': self.false_positive,
             'notes': self.notes,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'image_url': self.image_url if self.detection_type == 'image' else None,
-            'audio_url': self.audio_url if self.detection_type == 'audio' else None
+            'image_url': self.image_url if self.detection_type in ('image', 'fused') else None,
+            'audio_url': self.audio_url if self.detection_type in ('audio', 'fused') else None,
+            # Late fusion fields
+            'visual_confidence': self.visual_confidence,
+            'audio_confidence': self.audio_confidence,
+            'fusion_confidence': self.fusion_confidence,
+            'fusion_method': self.fusion_method,
         }
         
         if include_evidence:

@@ -92,8 +92,13 @@ def list_detections(request):
                 'false_positive': det.get('false_positive', False),
                 'notes': det.get('notes', ''),
                 'created_at': det.get('created_at').isoformat() if det.get('created_at') else None,
-                'image_url': det.get('image_url') if detection_type == 'image' else None,
-                'audio_url': det.get('audio_url') if detection_type == 'audio' else None
+                'image_url': det.get('image_url') if detection_type in ('image', 'fused') else None,
+                'audio_url': det.get('audio_url') if detection_type in ('audio', 'fused') else None,
+                # Late fusion fields
+                'visual_confidence': det.get('visual_confidence'),
+                'audio_confidence': det.get('audio_confidence'),
+                'fusion_confidence': det.get('fusion_confidence'),
+                'fusion_method': det.get('fusion_method'),
             }
             data.append(item)
         
