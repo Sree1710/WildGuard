@@ -61,7 +61,7 @@ const Navbar = () => {
           <UserIcon><FaUser /></UserIcon>
           <UserDetails>
             <UserName>{isAdmin ? 'Admin' : user.name}</UserName>
-            <UserRole>{isAdmin ? 'Administrator' : 'Field Ranger'}</UserRole>
+            <UserRole>{isAdmin ? 'Administrator' : 'Ranger'}</UserRole>
           </UserDetails>
         </UserInfo>
         <Divider />

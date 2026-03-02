@@ -86,7 +86,7 @@ const Login = () => {
           </VisualTitle>
 
           <VisualDescription>
-            AI-powered monitoring system for wildlife conservation
+            ML-powered monitoring system for wildlife conservation
             and anti-poaching operations.
           </VisualDescription>
 
@@ -162,7 +162,7 @@ const Login = () => {
               onClick={() => setSelectedRole('user')}
             >
               <FaUser />
-              <span>Field Staff</span>
+              <span>Ranger</span>
             </RoleTab>
           </RoleTabs>
 

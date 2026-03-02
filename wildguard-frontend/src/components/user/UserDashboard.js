@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FaBell, FaExclamationTriangle, FaMapMarkerAlt, FaClock, FaSync } from 'react-icons/fa';
+import { FaBell, FaExclamationTriangle, FaMapMarkerAlt, FaClock, FaSync, FaInfoCircle } from 'react-icons/fa';
 import { PageHeader, Section, Grid, AlertBadge } from '../shared/Layout';
 import { StatCard, StatIcon, StatContent, StatLabel, StatValue } from '../shared/Card';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../shared/Table';
@@ -80,7 +80,7 @@ const UserDashboard = () => {
       <PageHeader>
         <HeaderContent>
           <div>
-            <h1>Field Ranger Dashboard</h1>
+            <h1>Ranger Dashboard</h1>
             <p>Real-time alerts and detection overview</p>
           </div>
           <RefreshButton onClick={fetchDashboardData} disabled={loading}>
@@ -134,6 +134,45 @@ const UserDashboard = () => {
             </StatContent>
           </StatCard>
         </Grid>
+      </Section>
+
+      {/* Alert Color Code Guide */}
+      <Section>
+        <ColorCodeCard>
+          <ColorCodeHeader>
+            <FaInfoCircle /> Alert Severity Guide
+          </ColorCodeHeader>
+          <ColorCodeGrid>
+            <ColorCodeItem color="#dc3545">
+              <ColorDot color="#dc3545" />
+              <ColorCodeLabel>
+                <strong>Critical</strong>
+                <span>Armed person, Gunshot — Immediate action required</span>
+              </ColorCodeLabel>
+            </ColorCodeItem>
+            <ColorCodeItem color="#e67e22">
+              <ColorDot color="#e67e22" />
+              <ColorCodeLabel>
+                <strong>High</strong>
+                <span>Vehicle in restricted zone, Chainsaw — Priority investigation</span>
+              </ColorCodeLabel>
+            </ColorCodeItem>
+            <ColorCodeItem color="#f1c40f">
+              <ColorDot color="#f1c40f" />
+              <ColorCodeLabel>
+                <strong>Medium</strong>
+                <span>Unusual human activity, Trespasser — Monitor and log</span>
+              </ColorCodeLabel>
+            </ColorCodeItem>
+            <ColorCodeItem color="#27ae60">
+              <ColorDot color="#27ae60" />
+              <ColorCodeLabel>
+                <strong>Low</strong>
+                <span>Normal wildlife movement — No action needed</span>
+              </ColorCodeLabel>
+            </ColorCodeItem>
+          </ColorCodeGrid>
+        </ColorCodeCard>
       </Section>
 
       {/* Critical Alerts Panel */}
@@ -361,6 +400,77 @@ const ActivityHeader = styled.div`
   h3 {
     margin: 0;
     color: ${props => props.theme.colors.primary};
+  }
+`;
+
+const ColorCodeCard = styled.div`
+  background: ${props => props.theme.colors.white};
+  border-radius: ${props => props.theme.borderRadius.lg};
+  box-shadow: ${props => props.theme.shadows.sm};
+  padding: ${props => props.theme.spacing.lg} ${props => props.theme.spacing.xl};
+`;
+
+const ColorCodeHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: ${props => props.theme.fontSizes.lg};
+  font-weight: 600;
+  color: ${props => props.theme.colors.textPrimary};
+  margin-bottom: ${props => props.theme.spacing.md};
+
+  svg {
+    color: ${props => props.theme.colors.info};
+  }
+`;
+
+const ColorCodeGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: ${props => props.theme.spacing.md};
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ColorCodeItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border-radius: ${props => props.theme.borderRadius.md};
+  background: ${props => props.color}10;
+  border-left: 4px solid ${props => props.color};
+`;
+
+const ColorDot = styled.div`
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border-radius: 50%;
+  background: ${props => props.color};
+  margin-top: 3px;
+`;
+
+const ColorCodeLabel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: 14px;
+    color: ${props => props.theme.colors.textPrimary};
+  }
+
+  span {
+    font-size: 12px;
+    color: ${props => props.theme.colors.textSecondary};
+    line-height: 1.4;
   }
 `;
 

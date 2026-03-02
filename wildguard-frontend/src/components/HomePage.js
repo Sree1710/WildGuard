@@ -79,7 +79,7 @@ const HomePage = () => {
         <HeroGradient />
         <HeroContent>
           <HeroBadge>
-            <FaShieldAlt /> AI-Powered Conservation
+            <FaShieldAlt /> ML-Powered Conservation
           </HeroBadge>
           <HeroTitle>
             Protect Wildlife with
@@ -232,12 +232,12 @@ const HomePage = () => {
             <FeatureContent>
               <FeatureTitle>Role-Based Access</FeatureTitle>
               <FeatureDesc>
-                Separate dashboards for administrators and field rangers with
+                Separate dashboards for administrators and rangers with
                 appropriate permissions and workflows.
               </FeatureDesc>
               <FeatureList>
                 <FeatureListItem><FaCheck /> Admin full control</FeatureListItem>
-                <FeatureListItem><FaCheck /> Field Ranger view access</FeatureListItem>
+                <FeatureListItem><FaCheck /> Ranger view access</FeatureListItem>
               </FeatureList>
             </FeatureContent>
           </FeatureCard>
@@ -329,7 +329,7 @@ const HomePage = () => {
           <ModuleCard variant="user">
             <ModuleHeader>
               <ModuleIcon><FaUsers /></ModuleIcon>
-              <ModuleBadge>Field Ranger</ModuleBadge>
+              <ModuleBadge>Ranger</ModuleBadge>
             </ModuleHeader>
             <ModuleTitle>User Module</ModuleTitle>
             <ModuleDesc>Essential tools for rangers and field personnel</ModuleDesc>

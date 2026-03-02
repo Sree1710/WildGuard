@@ -136,7 +136,7 @@ const Signup = () => {
 
           <FormHeader>
             <WelcomeText>Create Account</WelcomeText>
-            <SubText>Join WildGuard as a Field Ranger</SubText>
+            <SubText>Join WildGuard as a Ranger</SubText>
           </FormHeader>
 
           <Form onSubmit={handleSubmit}>
