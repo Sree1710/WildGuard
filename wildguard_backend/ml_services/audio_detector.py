@@ -14,6 +14,7 @@ Academic Purpose:
 Uses only the finalized model and features selected in ml_experiments/
 """
 
+import os
 import numpy as np
 import json
 from datetime import datetime
@@ -121,7 +122,7 @@ class AudioDetector:
         
         return features
     
-    def predict(self, audio_path: str) -> Dict:
+    def predict(self, audio_path: str, original_filename: str = None) -> Dict:
         """
         Classify audio file.
         
@@ -129,6 +130,8 @@ class AudioDetector:
         -----------
         audio_path : str
             Path to audio file
+        original_filename : str
+            Original filename from upload (used for mock hint detection)
             
         Returns:
         --------
@@ -144,27 +147,89 @@ class AudioDetector:
         # ----
         
         features = self.extract_features(None)
-        prediction = self._mock_predict(features)
+        
+        # Build hint text from original filename and saved path
+        hint_text = ""
+        if original_filename:
+            hint_text += original_filename.lower() + " "
+        if audio_path:
+            hint_text += os.path.basename(str(audio_path)).lower()
+        
+        prediction = self._mock_predict(features, hint_text, audio_path)
         
         return prediction
     
-    def _mock_predict(self, features: Dict) -> Dict:
-        """Mock prediction for demonstration."""
-        # Generate random probabilities that sum to 1
-        proba = np.random.dirichlet(np.ones(len(self.AUDIO_CLASSES)))
+    def _mock_predict(self, features: Dict, hint_text: str = "", audio_path: str = "audio_file.wav") -> Dict:
+        """
+        Mock prediction using filename hints and file-content hashing for
+        deterministic, context-aware results.
+        """
+        import hashlib
+        
+        num_classes = len(self.AUDIO_CLASSES)
+        predict_hint = None
+        
+        # Strategy 1: Filename keyword hints
+        if any(word in hint_text for word in ["gun", "shot", "fire", "bang", "shoot", "blast", "boom"]):
+            predict_hint = "gunshot"
+        elif any(word in hint_text for word in ["chain", "saw", "cut", "timber", "logging"]):
+            predict_hint = "chainsaw"
+        elif any(word in hint_text for word in ["car", "truck", "engine", "vehicle", "jeep", "motor"]):
+            predict_hint = "vehicle"
+        elif any(word in hint_text for word in ["lion", "roar", "growl"]):
+            predict_hint = "lion"
+        elif any(word in hint_text for word in ["elephant", "trumpet"]):
+            predict_hint = "elephant"
+        elif any(word in hint_text for word in ["bird", "chirp", "tweet", "sing"]):
+            predict_hint = "bird"
+        elif any(word in hint_text for word in ["rain", "storm", "thunder"]):
+            predict_hint = "rain"
+        elif any(word in hint_text for word in ["wind", "breeze"]):
+            predict_hint = "wind"
+        
+        if predict_hint:
+            # Force high probability for the target class
+            class_idx = next((k for k, v in self.AUDIO_CLASSES.items() if v == predict_hint), None)
+            if class_idx is not None:
+                proba = np.ones(num_classes) * 0.01
+                target_conf = float(np.random.uniform(0.87, 0.97))
+                proba[class_idx] = target_conf
+                proba = proba / proba.sum()
+        else:
+            # Strategy 2: Use file content hash for deterministic results
+            file_hash = 0
+            if audio_path and os.path.exists(str(audio_path)):
+                try:
+                    with open(str(audio_path), 'rb') as f:
+                        data = f.read(8192)
+                        file_hash = int(hashlib.md5(data).hexdigest(), 16)
+                except:
+                    file_hash = hash(str(audio_path))
+            else:
+                file_hash = hash(str(audio_path) + hint_text)
+            
+            rng = np.random.RandomState(file_hash % (2**31))
+            proba = rng.dirichlet(np.ones(num_classes) * 0.3)
+            
+            # Bias toward threat sounds (60% chance)
+            threat_indices = [k for k, v in self.AUDIO_CLASSES.items() if v in self.THREAT_CLASSES]
+            if rng.random() < 0.6 and threat_indices:
+                forced_idx = rng.choice(threat_indices)
+                proba[forced_idx] = float(rng.uniform(0.6, 0.9))
+                proba = proba / proba.sum()
         
         # Find top prediction
-        predicted_class_id = np.argmax(proba)
+        predicted_class_id = int(np.argmax(proba))
         predicted_class_name = self.AUDIO_CLASSES[predicted_class_id]
         confidence = float(proba[predicted_class_id])
         
-        # Get class probabilities for all classes
+        # Get class probabilities
         class_probabilities = {}
         for class_id, class_name in self.AUDIO_CLASSES.items():
             class_probabilities[class_name] = round(float(proba[class_id]), 4)
         
         return {
-            "audio_path": "audio_file.wav",
+            "audio_path": str(audio_path),
             "timestamp": datetime.now().isoformat(),
             "predicted_class": predicted_class_name,
             "confidence": round(confidence, 4),

@@ -6,11 +6,14 @@ into a single, higher-confidence prediction.
 
 Fusion Strategy:
 - Weighted average of confidence scores (α=0.6 visual, β=0.4 audio)
+- Corroboration boost when both modalities agree on a threat category
 - Alert escalation rules for cross-modal threat correlation
 - Falls back to single-modality score when only one is available
 
 Academic Purpose:
 Demonstrates decision-level (late) fusion for multimodal wildlife monitoring.
+Corroboration boosting is based on the principle that agreement between
+independent sensors increases prediction reliability.
 """
 
 from datetime import datetime
@@ -48,13 +51,29 @@ class LateFusionEngine:
         ('poacher', 'gunshot'): {'alert_level': 'critical', 'label': 'confirmed_poacher'},
     }
     
-    def __init__(self, visual_weight: float = 0.6, audio_weight: float = 0.4):
+    # Corroboration boost rules
+    # When both modalities detect related threats, confidence is boosted
+    # because independent sensor agreement increases prediction reliability.
+    # Boost values are percentages (0.15 = 15% boost, capped at 1.0)
+    CORROBORATION_RULES = {
+        # (visual_object, audio_class) → boost_factor
+        ('human', 'gunshot'): 0.15,       # Strong threat corroboration → 15% boost
+        ('human', 'chainsaw'): 0.15,      # Illegal logging corroboration → 15% boost
+        ('poacher', 'gunshot'): 0.15,      # Confirmed poaching → 15% boost
+        ('vehicle', 'gunshot'): 0.12,      # Armed vehicle → 12% boost
+        ('human', 'vehicle'): 0.10,        # Suspicious vehicle → 10% boost
+        ('human', 'human_activity'): 0.10, # Human presence confirmed → 10% boost
+    }
+    
+    def __init__(self, visual_weight: float = 0.6, audio_weight: float = 0.4,
+                 enable_corroboration_boost: bool = True):
         if abs((visual_weight + audio_weight) - 1.0) > 0.01:
             raise ValueError("Weights must sum to 1.0")
         
         self.visual_weight = visual_weight
         self.audio_weight = audio_weight
-        self.fusion_method = "weighted_average"
+        self.enable_corroboration_boost = enable_corroboration_boost
+        self.fusion_method = "weighted_average_with_corroboration"
     
     def fuse(
         self,
@@ -93,12 +112,26 @@ class LateFusionEngine:
         has_visual = visual_result is not None
         has_audio = audio_result is not None
         
+        corroboration_boost = 0.0
+        
         if has_visual and has_audio:
             # Full late fusion — weighted average
             fusion_confidence = (
                 self.visual_weight * visual_conf +
                 self.audio_weight * audio_conf
             )
+            
+            # Apply corroboration boost when both modalities agree on threat
+            if self.enable_corroboration_boost:
+                corroboration_boost = self._get_corroboration_boost(
+                    visual_object, audio_class
+                )
+                if corroboration_boost > 0:
+                    pre_boost_confidence = fusion_confidence
+                    fusion_confidence = min(
+                        fusion_confidence * (1.0 + corroboration_boost), 1.0
+                    )
+            
             fusion_type = "full"
             sources = ["image", "audio"]
         elif has_visual:
@@ -145,6 +178,10 @@ class LateFusionEngine:
             "detected_object": detected_object,
             "alert_level": alert_level,
             
+            # Corroboration boost info (for explainability)
+            "corroboration_boost_applied": corroboration_boost > 0,
+            "corroboration_boost_percent": round(corroboration_boost * 100, 1) if corroboration_boost > 0 else 0,
+            
             # Escalation info
             "escalation_applied": escalation is not None,
             "escalation_rule": f"{visual_object}+{audio_class}" if escalation else None,
@@ -183,6 +220,30 @@ class LateFusionEngine:
     def _check_escalation(self, visual_object: str, audio_class: str) -> Optional[Dict]:
         """Check if a cross-modal escalation rule applies."""
         return self.ESCALATION_RULES.get((visual_object, audio_class))
+    
+    def _get_corroboration_boost(self, visual_object: str, audio_class: str) -> float:
+        """
+        Get corroboration boost when both modalities agree on a threat.
+        
+        When independent sensors (camera + microphone) both detect related
+        threats, the agreement increases prediction reliability. This is
+        based on the principle that the probability of two independent
+        detectors both producing false positives is much lower than either
+        one alone (P(FP_both) = P(FP_visual) × P(FP_audio)).
+        
+        Parameters:
+        -----------
+        visual_object : str
+            Object detected by the image model
+        audio_class : str
+            Sound class detected by the audio model
+            
+        Returns:
+        --------
+        boost : float
+            Boost factor (0.0 = no boost, 0.15 = 15% boost)
+        """
+        return self.CORROBORATION_RULES.get((visual_object, audio_class), 0.0)
 
 
 # ============================================================================
@@ -191,7 +252,7 @@ class LateFusionEngine:
 
 if __name__ == "__main__":
     """
-    Example usage of LateFusionEngine
+    Example usage of LateFusionEngine with Corroboration Boosting
     """
     print("\n" + "="*70)
     print("LATE FUSION ENGINE - MULTIMODAL DETECTION")
@@ -203,33 +264,64 @@ if __name__ == "__main__":
     print(f"✓ Audio weight:  {engine.audio_weight}")
     print(f"✓ Fusion method: {engine.fusion_method}")
     print(f"✓ Escalation rules: {len(engine.ESCALATION_RULES)}")
+    print(f"✓ Corroboration rules: {len(engine.CORROBORATION_RULES)}")
+    print(f"✓ Corroboration boost: {'Enabled' if engine.enable_corroboration_boost else 'Disabled'}")
     
-    # Scenario 1: Full fusion — human + gunshot (escalation)
+    # Scenario 1: Full fusion — human + gunshot (escalation + corroboration boost)
     print("\n" + "-"*50)
     print("SCENARIO 1: Human (image) + Gunshot (audio)")
+    print("  → Escalation + 15% Corroboration Boost")
     result = engine.fuse(
         visual_result={"confidence": 0.85, "detected_object": "human"},
         audio_result={"confidence": 0.92, "predicted_class": "gunshot"}
     )
-    print(f"  Fused confidence: {result['fusion_confidence']:.2%}")
+    print(f"  Visual conf:  {result['visual_confidence']:.2%}")
+    print(f"  Audio conf:   {result['audio_confidence']:.2%}")
+    print(f"  Fused conf:   {result['fusion_confidence']:.2%}")
+    print(f"  Boost applied: {result['corroboration_boost_percent']}%")
     print(f"  Detected: {result['detected_object']}")
     print(f"  Alert: {result['alert_level']}")
     print(f"  Escalation: {'YES — ' + result['escalation_rule'] if result['escalation_applied'] else 'No'}")
     
-    # Scenario 2: Full fusion — elephant + elephant (corroboration)
+    # Scenario 2: Compare WITH vs WITHOUT corroboration boost
     print("\n" + "-"*50)
-    print("SCENARIO 2: Elephant (image) + Elephant (audio)")
+    print("SCENARIO 2: Corroboration Boost Comparison")
+    print("  Input: Human (80%) + Gunshot (75%)")
+    
+    # Without boost
+    engine_no_boost = LateFusionEngine(enable_corroboration_boost=False)
+    result_no_boost = engine_no_boost.fuse(
+        visual_result={"confidence": 0.80, "detected_object": "human"},
+        audio_result={"confidence": 0.75, "predicted_class": "gunshot"}
+    )
+    
+    # With boost
+    result_with_boost = engine.fuse(
+        visual_result={"confidence": 0.80, "detected_object": "human"},
+        audio_result={"confidence": 0.75, "predicted_class": "gunshot"}
+    )
+    
+    print(f"  WITHOUT boost: {result_no_boost['fusion_confidence']:.2%}")
+    print(f"  WITH boost:    {result_with_boost['fusion_confidence']:.2%}")
+    print(f"  Improvement:   +{(result_with_boost['fusion_confidence'] - result_no_boost['fusion_confidence']):.2%}")
+    print(f"  → Boost pushes confidence from ~{result_no_boost['fusion_confidence']:.0%} to ~{result_with_boost['fusion_confidence']:.0%}")
+    
+    # Scenario 3: Elephant + elephant (no corroboration rule → no boost)
+    print("\n" + "-"*50)
+    print("SCENARIO 3: Elephant (image) + Elephant (audio)")
+    print("  → No corroboration rule for wildlife-only detections")
     result = engine.fuse(
         visual_result={"confidence": 0.80, "detected_object": "elephant"},
         audio_result={"confidence": 0.75, "predicted_class": "elephant"}
     )
     print(f"  Fused confidence: {result['fusion_confidence']:.2%}")
+    print(f"  Boost applied: {result['corroboration_boost_applied']}")
     print(f"  Detected: {result['detected_object']}")
     print(f"  Alert: {result['alert_level']}")
     
-    # Scenario 3: Visual only
+    # Scenario 4: Visual only
     print("\n" + "-"*50)
-    print("SCENARIO 3: Visual only (no audio)")
+    print("SCENARIO 4: Visual only (no audio)")
     result = engine.fuse(
         visual_result={"confidence": 0.88, "detected_object": "lion"},
         audio_result=None

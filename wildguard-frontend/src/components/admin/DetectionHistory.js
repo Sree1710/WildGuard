@@ -330,28 +330,6 @@ const DetectionHistory = () => {
                       <p>No audio file available</p>
                     )}
                   </div>
-
-                  {/* Fusion confidence breakdown */}
-                  <FusionDetails>
-                    <FusionTitle>Fusion Confidence Breakdown</FusionTitle>
-                    <FusionGrid>
-                      <FusionItem>
-                        <FusionLabel>📷 Visual</FusionLabel>
-                        <FusionValue>{selectedDetection.visual_confidence ? Math.round(selectedDetection.visual_confidence * 100) + '%' : 'N/A'}</FusionValue>
-                      </FusionItem>
-                      <FusionItem>
-                        <FusionLabel>🔊 Audio</FusionLabel>
-                        <FusionValue>{selectedDetection.audio_confidence ? Math.round(selectedDetection.audio_confidence * 100) + '%' : 'N/A'}</FusionValue>
-                      </FusionItem>
-                      <FusionItem highlight>
-                        <FusionLabel>🔗 Fused</FusionLabel>
-                        <FusionValue>{selectedDetection.fusion_confidence ? Math.round(selectedDetection.fusion_confidence * 100) + '%' : 'N/A'}</FusionValue>
-                      </FusionItem>
-                    </FusionGrid>
-                    {selectedDetection.fusion_method && (
-                      <FusionMethod>Method: {selectedDetection.fusion_method}</FusionMethod>
-                    )}
-                  </FusionDetails>
                 </>
               ) : selectedDetection.detection_type === 'audio' ? (
                 <div style={{ width: '100%', padding: '20px', textAlign: 'center', background: '#f8f9fa', borderRadius: '8px' }}>
@@ -709,54 +687,7 @@ const FusedBadge = styled.div`
   margin-bottom: 16px;
 `;
 
-const FusionDetails = styled.div`
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border: 1px solid #dee2e6;
-  border-radius: 10px;
-  padding: 16px;
-`;
 
-const FusionTitle = styled.div`
-  font-weight: 600;
-  font-size: 14px;
-  color: #495057;
-  margin-bottom: 12px;
-`;
-
-const FusionGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-`;
-
-const FusionItem = styled.div`
-  text-align: center;
-  padding: 12px;
-  background: ${props => props.highlight ? 'linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%)' : 'white'};
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  color: ${props => props.highlight ? 'white' : 'inherit'};
-`;
-
-const FusionLabel = styled.div`
-  font-size: 12px;
-  margin-bottom: 4px;
-  opacity: 0.85;
-`;
-
-const FusionValue = styled.div`
-  font-size: 22px;
-  font-weight: 700;
-`;
-
-const FusionMethod = styled.div`
-  margin-top: 10px;
-  font-size: 12px;
-  color: #6c757d;
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-`;
 
 export default DetectionHistory;
 

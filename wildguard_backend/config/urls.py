@@ -41,6 +41,9 @@ urlpatterns = [
     path('api/user/reports/pdf/', user_views.generate_pdf_report, name='generate_pdf_report'),
     path('api/user/emergency-info/', user_views.emergency_info, name='emergency_info'),
     path('api/user/dashboard/', user_views.user_dashboard, name='user_dashboard'),
+    path('api/user/cameras/', user_views.user_cameras, name='user_cameras'),
+    path('api/user/live-detection/', user_views.live_detection, name='live_detection'),
+    path('api/user/live-detections/', user_views.live_detections_list, name='live_detections_list'),
 ]
 
 # Serve media files in development

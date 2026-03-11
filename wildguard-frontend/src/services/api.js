@@ -110,6 +110,30 @@ class ApiService {
     }
   }
 
+  /**
+   * Upload request method for multipart form-data (file uploads)
+   */
+  async uploadRequest(endpoint, formData) {
+    const headers = {};
+    const token = this.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    // Do NOT set Content-Type — browser auto-sets it with boundary for FormData
+
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers,
+        body: formData,
+      });
+      return await this.handleResponse(response);
+    } catch (error) {
+      console.error(`API Upload Error [${endpoint}]:`, error);
+      throw error;
+    }
+  }
+
   // =====================
   // AUTH ENDPOINTS
   // =====================
@@ -262,6 +286,18 @@ class ApiService {
 
   async getEmergencyInfo() {
     return this.request('/user/emergency-info/');
+  }
+
+  async uploadLiveDetection(formData) {
+    return this.uploadRequest('/user/live-detection/', formData);
+  }
+
+  async getLiveDetections() {
+    return this.request('/user/live-detections/');
+  }
+
+  async getUserCameras() {
+    return this.request('/user/cameras/');
   }
 }
 

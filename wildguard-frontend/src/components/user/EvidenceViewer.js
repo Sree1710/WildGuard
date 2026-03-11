@@ -11,7 +11,7 @@ import { detectionHistory, audioEvidence } from '../../data/mockData';
  */
 const EvidenceViewer = () => {
   const [selectedEvidence, setSelectedEvidence] = useState(detectionHistory[0]);
-  const [evidenceType, setEvidenceType] = useState('image'); // 'image' or 'audio'
+  const [evidenceType, setEvidenceType] = useState('image');
 
   return (
     <Container>
@@ -23,14 +23,14 @@ const EvidenceViewer = () => {
       {/* Evidence Type Toggle */}
       <Section>
         <TypeToggle>
-          <ToggleButton 
-            active={evidenceType === 'image'} 
+          <ToggleButton
+            active={evidenceType === 'image'}
             onClick={() => setEvidenceType('image')}
           >
             <FaImage /> Images ({detectionHistory.length})
           </ToggleButton>
-          <ToggleButton 
-            active={evidenceType === 'audio'} 
+          <ToggleButton
+            active={evidenceType === 'audio'}
             onClick={() => setEvidenceType('audio')}
           >
             <FaVolumeUp /> Audio ({audioEvidence.length})
@@ -67,8 +67,8 @@ const EvidenceViewer = () => {
                   <MetadataLabel>Type</MetadataLabel>
                   <MetadataValue>
                     <Badge variant={
-                      selectedEvidence.type === 'Animal' ? 'success' : 
-                      selectedEvidence.type === 'Human' ? 'warning' : 'danger'
+                      selectedEvidence.type === 'Animal' ? 'success' :
+                        selectedEvidence.type === 'Human' ? 'warning' : 'danger'
                     }>
                       {selectedEvidence.type}
                     </Badge>
@@ -192,7 +192,8 @@ const EvidenceViewer = () => {
   );
 };
 
-// Styled Components
+// ===== Styled Components =====
+
 const Container = styled.div`
   width: 100%;
 `;
@@ -293,8 +294,8 @@ const ConfidenceScore = styled.span`
   display: inline-block;
   padding: ${props => props.theme.spacing.xs} ${props => props.theme.spacing.md};
   border-radius: ${props => props.theme.borderRadius.sm};
-  background: ${props => props.score > 0.8 ? props.theme.colors.success : 
-                props.score > 0.6 ? props.theme.colors.warning : props.theme.colors.danger};
+  background: ${props => props.score > 0.8 ? props.theme.colors.success :
+    props.score > 0.6 ? props.theme.colors.warning : props.theme.colors.danger};
   color: ${props => props.theme.colors.white};
   font-weight: ${props => props.theme.fontWeights.semibold};
 `;

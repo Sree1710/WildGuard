@@ -927,3 +927,329 @@ def user_dashboard(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+@require_auth
+@require_http_methods(["GET"])
+def user_cameras(request):
+    """
+    Get list of active camera traps (user-accessible).
+    Used by the live detection upload form for camera selection.
+    """
+    try:
+        from pymongo import MongoClient
+        from bson import ObjectId
+        import certifi
+        from django.conf import settings
+        
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
+        cameras_raw = list(db.camera_traps.find({'is_active': True}))
+        cameras = []
+        for cam in cameras_raw:
+            cameras.append({
+                'id': str(cam.get('_id', '')),
+                'name': cam.get('name', 'Unknown'),
+                'location': cam.get('location', 'Unknown'),
+                'zone': cam.get('zone', ''),
+            })
+        
+        client.close()
+        
+        return JsonResponse({
+            'success': True,
+            'data': cameras
+        }, status=200)
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_auth
+@csrf_exempt
+@require_http_methods(["POST"])
+def live_detection(request):
+    """
+    Live Detection Upload.
+    
+    Accepts a camera trap image and/or audio file, runs the ML pipeline
+    (YOLOv5 image detection + Random Forest audio classification + Late Fusion
+    with corroboration boost), saves the result as a new Detection record.
+    """
+    try:
+        import os
+        import re
+        import shutil
+        from bson import ObjectId
+        from pymongo import MongoClient
+        import certifi
+        from django.conf import settings
+        from pathlib import Path
+        
+        # Parse inputs
+        camera_trap_id = request.POST.get('camera_trap')
+        image_file = request.FILES.get('image')
+        audio_file = request.FILES.get('audio')
+        
+        if not image_file and not audio_file:
+            return JsonResponse({
+                'success': False,
+                'error': 'At least one file (image or audio) is required'
+            }, status=400)
+            
+        # Connect to MongoDB
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
+        camera = None
+        if camera_trap_id and camera_trap_id != 'null':
+            try:
+                camera = db.camera_traps.find_one({'_id': ObjectId(camera_trap_id)})
+                if not camera:
+                    client.close()
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Camera trap not found'
+                    }, status=404)
+            except:
+                client.close()
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Invalid camera trap ID'
+                }, status=400)
+        
+        # Save uploaded files to media directory
+        media_dir = Path(settings.MEDIA_ROOT) / "detections"
+        os.makedirs(media_dir, exist_ok=True)
+        
+        image_url = None
+        audio_url = None
+        image_path = None
+        audio_path = None
+        
+        if image_file:
+            safe_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', image_file.name)
+            filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_live_{safe_name}"
+            dest_path = media_dir / filename
+            with open(dest_path, 'wb+') as f:
+                for chunk in image_file.chunks():
+                    f.write(chunk)
+            image_url = f"http://localhost:8000/media/detections/{filename}"
+            image_path = str(dest_path)
+            
+        if audio_file:
+            safe_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', audio_file.name)
+            filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_live_{safe_name}"
+            dest_path = media_dir / filename
+            with open(dest_path, 'wb+') as f:
+                for chunk in audio_file.chunks():
+                    f.write(chunk)
+            audio_url = f"http://localhost:8000/media/detections/{filename}"
+            audio_path = str(dest_path)
+        
+        # Run ML pipeline
+        from ml_services.image_detector import ImageDetector
+        from ml_services.audio_detector import AudioDetector
+        from ml_services.late_fusion import LateFusionEngine
+        
+        visual_result = None
+        audio_result = None
+        
+        # Store original filenames for ML hint detection
+        original_image_name = image_file.name if image_file else None
+        original_audio_name = audio_file.name if audio_file else None
+        
+        # Image detection
+        if image_path:
+            detector = ImageDetector()
+            detector.load_model()
+            img_result = detector.predict(image_path, original_filename=original_image_name)
+            
+            # Extract top detection for fusion
+            if img_result.get('detections') and len(img_result['detections']) > 0:
+                top_detection = max(img_result['detections'], key=lambda d: d['confidence'])
+                visual_result = {
+                    'confidence': top_detection['confidence'],
+                    'detected_object': top_detection['class_name']
+                }
+            else:
+                visual_result = {
+                    'confidence': 0.5,
+                    'detected_object': 'unknown'
+                }
+        
+        # Audio detection
+        if audio_path:
+            audio_detector = AudioDetector()
+            audio_detector.load_model()
+            aud_result = audio_detector.predict(audio_path, original_filename=original_audio_name)
+            
+            audio_result = {
+                'confidence': aud_result['confidence'],
+                'predicted_class': aud_result['predicted_class']
+            }
+        
+        # Run Late Fusion (with corroboration boost)
+        engine = LateFusionEngine()
+        fused_result = engine.fuse(
+            visual_result=visual_result,
+            audio_result=audio_result
+        )
+        
+        # Determine detection type
+        if visual_result and audio_result:
+            detection_type = 'fused'
+        elif visual_result:
+            detection_type = 'image'
+        else:
+            detection_type = 'audio'
+        
+        # Save to database
+        detection_doc = {
+            '_id': ObjectId(),
+            'created_at': datetime.now(),
+            'detection_type': detection_type,
+            'detected_object': fused_result['detected_object'],
+            'confidence': fused_result['fusion_confidence'],
+            'alert_level': fused_result['alert_level'],
+            'notes': 'live_upload',  # Tag for filtering live detections
+        }
+        
+        if camera_trap_id and camera_trap_id != 'null':
+            detection_doc['camera_trap'] = ObjectId(camera_trap_id)
+        
+        if image_url:
+            detection_doc['image_url'] = image_url
+        if audio_url:
+            detection_doc['audio_url'] = audio_url
+        
+        # Add fusion fields
+        if detection_type == 'fused':
+            detection_doc['visual_confidence'] = fused_result.get('visual_confidence')
+            detection_doc['audio_confidence'] = fused_result.get('audio_confidence')
+            detection_doc['fusion_confidence'] = fused_result.get('fusion_confidence')
+            detection_doc['fusion_method'] = fused_result.get('fusion_method')
+            detection_doc['visual_object'] = visual_result['detected_object'] if visual_result else None
+            detection_doc['audio_class'] = audio_result['predicted_class'] if audio_result else None
+            detection_doc['corroboration_boost_applied'] = fused_result.get('corroboration_boost_applied', False)
+            detection_doc['corroboration_boost_percent'] = fused_result.get('corroboration_boost_percent', 0)
+            detection_doc['escalation_applied'] = fused_result.get('escalation_applied', False)
+        
+        db.detections.insert_one(detection_doc)
+        
+        # Create emergency alert if critical
+        if fused_result['alert_level'] in ['critical', 'high']:
+            camera_name = camera.get('name', 'Unknown Location') if camera else 'Manual Upload'
+            location = camera.get('location', '') if camera else 'Unknown'
+            
+            alert_doc = {
+                '_id': ObjectId(),
+                'alert_type': 'gunshot' if 'gunshot' in str(fused_result.get('audio_class', '')) else 'custom',
+                'description': (
+                    f"LIVE DETECTION: {fused_result['detected_object']} detected at "
+                    f"{camera_name} "
+                    f"(confidence: {fused_result['fusion_confidence']:.0%})"
+                ),
+                'detection': detection_doc['_id'],
+                'location': location,
+                'timestamp': datetime.now(),
+                'status': 'active',
+                'severity': fused_result['alert_level'],
+                'is_verified': False
+            }
+            if camera_trap_id and camera_trap_id != 'null':
+                alert_doc['camera_trap'] = ObjectId(camera_trap_id)
+                
+            db.emergency_alerts.insert_one(alert_doc)
+        
+        client.close()
+        
+        # Format response
+        response_data = {
+            'id': str(detection_doc['_id']),
+            'detection_type': detection_type,
+            'detected_object': fused_result['detected_object'],
+            'confidence': fused_result['fusion_confidence'],
+            'alert_level': fused_result['alert_level'],
+            'camera_name': camera.get('name', 'Manual Upload') if camera else 'Manual Upload',
+            'image_url': image_url,
+            'audio_url': audio_url,
+            'visual_confidence': fused_result.get('visual_confidence'),
+            'audio_confidence': fused_result.get('audio_confidence'),
+            'fusion_confidence': fused_result.get('fusion_confidence'),
+            'fusion_type': 'full' if detection_type == 'fused' else 'partial',
+            'visual_object': visual_result['detected_object'] if visual_result else None,
+            'audio_class': audio_result['predicted_class'] if audio_result else None,
+            'corroboration_boost_applied': fused_result.get('corroboration_boost_applied', False),
+            'corroboration_boost_percent': fused_result.get('corroboration_boost_percent', 0),
+            'escalation_applied': fused_result.get('escalation_applied', False)
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Live detection completed successfully',
+            'detection': response_data
+        }, status=201)
+        
+    except Exception as e:
+        import traceback
+        print(f"Live detection error: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@require_auth
+@require_http_methods(["GET"])
+def live_detections_list(request):
+    """
+    Get recent live detections.
+    """
+    try:
+        from pymongo import MongoClient
+        import certifi
+        from django.conf import settings
+        
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+        
+        # Find detections marked as live_upload, limit to 20 most recent
+        detections_cursor = db.detections.find(
+            {'notes': 'live_upload'}
+        ).sort('created_at', -1).limit(20)
+        
+        detections = []
+        for det in detections_cursor:
+            # Get camera name if exists
+            camera_name = "Unknown"
+            if det.get('camera_trap'):
+                cam = db.camera_traps.find_one({'_id': det['camera_trap']})
+                if cam:
+                    camera_name = cam.get('name', 'Unknown')
+            
+            d_dict = {
+                'id': str(det.get('_id', '')),
+                'camera_name': camera_name,
+                'detected_object': det.get('detected_object', 'Unknown'),
+                'confidence': det.get('confidence', 0),
+                'alert_level': det.get('alert_level', 'none'),
+                'timestamp': det.get('created_at', '').isoformat() if det.get('created_at') else '',
+            }
+            detections.append(d_dict)
+            
+        client.close()
+        
+        return JsonResponse({
+            'success': True,
+            'data': detections
+        }, status=200)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

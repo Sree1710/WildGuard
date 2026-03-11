@@ -89,7 +89,7 @@ class ImageDetector:
             "iou": self.iou_threshold
         }
     
-    def predict(self, image_path: str) -> Dict:
+    def predict(self, image_path: str, original_filename: str = None) -> Dict:
         """
         Perform object detection on image.
         
@@ -97,6 +97,8 @@ class ImageDetector:
         -----------
         image_path : str
             Path to image file
+        original_filename : str
+            Original filename from upload (used for mock hint detection)
             
         Returns:
         --------
@@ -110,27 +112,106 @@ class ImageDetector:
         # ----
         
         # Mock detection for academic purpose
-        detections = self._mock_detect(image_path)
+        detections = self._mock_detect(image_path, original_filename)
         return detections
     
-    def _mock_detect(self, image_path: str) -> Dict:
-        """Mock detection for demonstration."""
-        num_detections = np.random.randint(0, 4)
+    def _mock_detect(self, image_path: str, original_filename: str = None) -> Dict:
+        """
+        Mock detection using filename hints and file-content hashing for
+        deterministic, context-aware results.
+        """
+        import hashlib
+        
+        # Combine original filename and saved path for hint matching
+        hint_text = ""
+        if original_filename:
+            hint_text += original_filename.lower() + " "
+        if image_path:
+            hint_text += os.path.basename(image_path).lower()
+        
         detections_list = []
         
-        all_classes = {**self.WILDLIFE_CLASSES, **self.THREAT_CLASSES}
+        # Strategy 1: Filename keyword hints
+        threat_keywords = ["hunter", "poacher", "gun", "rifle", "weapon", "man", "human",
+                           "person", "people", "soldier", "snare", "trap", "intruder",
+                           "trespasser", "armed", "suspicious", "threat"]
+        wildlife_map = {
+            "elephant": 0, "lion": 1, "zebra": 2, "giraffe": 3,
+            "rhino": 4, "buffalo": 5, "antelope": 6, "tiger": 7,
+            "leopard": 7, "wildcat": 7, "animal": 0, "wildlife": 0
+        }
         
-        for _ in range(num_detections):
-            class_id = np.random.choice(list(all_classes.keys()))
+        if any(word in hint_text for word in threat_keywords):
+            # Detected a threat — return human/poacher + possibly weapon
+            if "poacher" in hint_text or "hunter" in hint_text:
+                threat_id = 10  # poacher
+            elif "weapon" in hint_text or "gun" in hint_text or "rifle" in hint_text:
+                threat_id = 11  # weapon
+            else:
+                threat_id = 8  # human
+            
+            detections_list.append({
+                "class_id": threat_id,
+                "class_name": self.THREAT_CLASSES[threat_id],
+                "confidence": float(np.random.uniform(0.88, 0.97)),
+                "bbox": {"x_min": 120.0, "y_min": 80.0, "x_max": 380.0, "y_max": 450.0},
+                "detection_type": "threat"
+            })
+            # Also detect weapon if human/poacher
+            if threat_id in [8, 10]:
+                detections_list.append({
+                    "class_id": 11,
+                    "class_name": self.THREAT_CLASSES[11],
+                    "confidence": float(np.random.uniform(0.78, 0.93)),
+                    "bbox": {"x_min": 200.0, "y_min": 180.0, "x_max": 300.0, "y_max": 280.0},
+                    "detection_type": "threat"
+                })
+        
+        elif any(word in hint_text for word in wildlife_map.keys()):
+            # Detected wildlife via filename
+            matched_word = next(w for w in wildlife_map if w in hint_text)
+            wildlife_id = wildlife_map[matched_word]
+            class_name = self.WILDLIFE_CLASSES.get(wildlife_id, "elephant")
+            detections_list.append({
+                "class_id": wildlife_id,
+                "class_name": class_name,
+                "confidence": float(np.random.uniform(0.82, 0.97)),
+                "bbox": {"x_min": 60.0, "y_min": 40.0, "x_max": 500.0, "y_max": 480.0},
+                "detection_type": "wildlife"
+            })
+        
+        else:
+            # Strategy 2: Use file content hash for deterministic results
+            file_hash = 0
+            if image_path and os.path.exists(image_path):
+                try:
+                    with open(image_path, 'rb') as f:
+                        data = f.read(8192)  # Read first 8KB
+                        file_hash = int(hashlib.md5(data).hexdigest(), 16)
+                except:
+                    file_hash = hash(image_path)
+            else:
+                file_hash = hash(str(image_path) + str(original_filename))
+            
+            # Seed RNG with file hash for deterministic results
+            rng = np.random.RandomState(file_hash % (2**31))
+            
+            all_classes = {**self.WILDLIFE_CLASSES, **self.THREAT_CLASSES}
+            # Bias toward threats (60% chance) for more useful demo results
+            if rng.random() < 0.6:
+                class_id = rng.choice(list(self.THREAT_CLASSES.keys()))
+            else:
+                class_id = rng.choice(list(self.WILDLIFE_CLASSES.keys()))
+            
             detections_list.append({
                 "class_id": int(class_id),
                 "class_name": all_classes[class_id],
-                "confidence": float(np.random.uniform(0.7, 0.98)),
+                "confidence": float(rng.uniform(0.75, 0.95)),
                 "bbox": {
-                    "x_min": float(np.random.uniform(0, 640)),
-                    "y_min": float(np.random.uniform(0, 640)),
-                    "x_max": float(np.random.uniform(0, 640)),
-                    "y_max": float(np.random.uniform(0, 640))
+                    "x_min": float(rng.uniform(50, 200)),
+                    "y_min": float(rng.uniform(50, 200)),
+                    "x_max": float(rng.uniform(350, 550)),
+                    "y_max": float(rng.uniform(350, 550))
                 },
                 "detection_type": "threat" if class_id >= 8 else "wildlife"
             })
