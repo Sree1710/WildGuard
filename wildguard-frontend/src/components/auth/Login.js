@@ -56,11 +56,25 @@ const Login = () => {
 
     setLoading(false);
     if (result.success) {
-      navigate(
-        formData.username === 'admin'
-          ? '/admin/dashboard'
-          : '/user/dashboard'
-      );
+      // Get the actual user role from the login response
+      const userRole = result.user?.role || 'user';
+
+      // Validate that the selected role matches the user's actual role
+      const isAdmin = userRole === 'admin';
+      const selectedAdmin = selectedRole === 'admin';
+
+      if (isAdmin && !selectedAdmin) {
+        setError('This account is an Admin account. Please select the Admin tab.');
+        return;
+      }
+
+      if (!isAdmin && selectedAdmin) {
+        setError('This account is a Ranger account. Please select the Ranger tab.');
+        return;
+      }
+
+      // Navigate based on actual user role
+      navigate(isAdmin ? '/admin/dashboard' : '/user/dashboard');
     } else {
       setError(result.message);
     }

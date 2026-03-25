@@ -25,14 +25,14 @@ export const AuthProvider = ({ children }) => {
 
   /**
    * Login function - authenticates user with backend API
-   * @param {string} username 
-   * @param {string} password 
-   * @returns {object} { success: boolean, message: string }
+   * @param {string} username
+   * @param {string} password
+   * @returns {object} { success: boolean, message: string, user?: object }
    */
   const login = async (username, password) => {
     try {
       const response = await api.login(username, password);
-      
+
       if (response.success) {
         const userData = {
           id: response.user.id,
@@ -41,9 +41,9 @@ export const AuthProvider = ({ children }) => {
           name: response.user.name,
           email: response.user.email,
         };
-        
+
         setUser(userData);
-        return { success: true, message: 'Login successful' };
+        return { success: true, message: 'Login successful', user: userData };
       }
 
       return { success: false, message: response.error || 'Login failed' };
