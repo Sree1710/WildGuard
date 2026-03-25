@@ -386,7 +386,9 @@ def generate_pdf_report(request):
         
         # Build query based on report type
         base_query = {'created_at': {'$gte': start_date}}
-        human_objects = ['Human', 'human', 'Poacher', 'poacher', 'Vehicle', 'vehicle', 'Person', 'person']
+        human_objects = ['Human', 'human', 'Poacher', 'poacher', 'Vehicle', 'vehicle',
+                        'Person', 'person', 'Intruder', 'intruder', 'Human Activity',
+                        'Human activity', 'human activity']
         
         report_title = "Detection Report"
         report_subtitle = "Comprehensive Wildlife Monitoring Analysis"
@@ -667,7 +669,9 @@ def generate_pdf_report(request):
                 ])
             
             top_table = Table(top_data, colWidths=[0.8*inch, 3*inch, 1.5*inch, 1.2*inch])
-            top_table.setStyle(TableStyle([
+
+            # Build table style with dynamic alternating rows
+            top_table_style = [
                 # Header
                 ('BACKGROUND', (0, 0), (-1, 0), INFO_BLUE),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
@@ -679,18 +683,17 @@ def generate_pdf_report(request):
                 ('ALIGN', (0, 1), (0, -1), 'CENTER'),
                 ('ALIGN', (1, 1), (1, -1), 'LEFT'),
                 ('ALIGN', (2, 1), (-1, -1), 'CENTER'),
-                # Alternating rows
-                ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor('#E3F2FD')),
-                ('BACKGROUND', (0, 3), (-1, 3), colors.HexColor('#E3F2FD')),
-                ('BACKGROUND', (0, 5), (-1, 5), colors.HexColor('#E3F2FD')),
-                ('BACKGROUND', (0, 7), (-1, 7), colors.HexColor('#E3F2FD')),
-                ('BACKGROUND', (0, 9), (-1, 9), colors.HexColor('#E3F2FD')),
                 # Grid
                 ('GRID', (0, 0), (-1, -1), 0.5, BORDER_GRAY),
                 ('TOPPADDING', (0, 0), (-1, -1), 8),
                 ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
                 ('LEFTPADDING', (0, 0), (-1, -1), 10),
-            ]))
+            ]
+            # Add alternating row colors only for rows that exist
+            for row_idx in range(1, len(top_data), 2):
+                top_table_style.append(('BACKGROUND', (0, row_idx), (-1, row_idx), colors.HexColor('#E3F2FD')))
+
+            top_table.setStyle(TableStyle(top_table_style))
             elements.append(top_table)
             elements.append(Spacer(1, 20))
         
