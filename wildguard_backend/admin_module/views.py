@@ -292,30 +292,110 @@ def create_camera(request):
 def update_camera(request, camera_id):
     """
     Update camera status and info.
+    Uses raw pymongo to avoid MongoEngine thread-local issues.
     """
     try:
-        camera = CameraTrap.objects.get(id=camera_id)
+        from pymongo import MongoClient
+        from bson import ObjectId
+        import certifi
+        from django.conf import settings
+
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+
+        # Find camera
+        try:
+            camera = db.camera_traps.find_one({'_id': ObjectId(camera_id)})
+        except:
+            client.close()
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid camera ID format'
+            }, status=400)
+
+        if not camera:
+            client.close()
+            return JsonResponse({
+                'success': False,
+                'error': 'Camera not found'
+            }, status=404)
+
         data = json.loads(request.body)
-        
-        camera.is_active = data.get('is_active', camera.is_active)
-        camera.is_online = data.get('is_online', camera.is_online)
-        camera.battery_level = data.get('battery_level', camera.battery_level)
-        camera.storage_available_gb = data.get('storage_available_gb', camera.storage_available_gb)
-        camera.updated_at = datetime.now()
-        
-        camera.save()
-        
+
+        # Build update document with all editable fields
+        update_fields = {'updated_at': datetime.now()}
+
+        # Update name if provided
+        if 'name' in data:
+            update_fields['name'] = data['name']
+
+        # Update location if provided
+        if 'location' in data:
+            update_fields['location'] = data['location']
+
+        # Update coordinates if provided
+        if 'latitude' in data and data['latitude'] != '':
+            try:
+                update_fields['latitude'] = float(data['latitude'])
+            except (ValueError, TypeError):
+                pass
+
+        if 'longitude' in data and data['longitude'] != '':
+            try:
+                update_fields['longitude'] = float(data['longitude'])
+            except (ValueError, TypeError):
+                pass
+
+        # Update status fields
+        if 'is_active' in data:
+            update_fields['is_active'] = bool(data['is_active'])
+
+        if 'is_online' in data:
+            update_fields['is_online'] = bool(data['is_online'])
+
+        if 'battery_level' in data:
+            update_fields['battery_level'] = data['battery_level']
+
+        if 'storage_available_gb' in data:
+            update_fields['storage_available_gb'] = data['storage_available_gb']
+
+        if 'resolution' in data:
+            update_fields['resolution'] = data['resolution']
+
+        # Perform update
+        db.camera_traps.update_one(
+            {'_id': ObjectId(camera_id)},
+            {'$set': update_fields}
+        )
+
+        # Fetch updated camera
+        updated_camera = db.camera_traps.find_one({'_id': ObjectId(camera_id)})
+
+        client.close()
+
         return JsonResponse({
             'success': True,
-            'camera': camera.to_dict()
+            'camera': {
+                'id': str(updated_camera.get('_id', '')),
+                'name': updated_camera.get('name', ''),
+                'location': updated_camera.get('location', ''),
+                'latitude': updated_camera.get('latitude'),
+                'longitude': updated_camera.get('longitude'),
+                'is_active': updated_camera.get('is_active', False),
+                'is_online': updated_camera.get('is_online', False),
+                'battery_level': updated_camera.get('battery_level', 0),
+                'resolution': updated_camera.get('resolution', ''),
+            }
         }, status=200)
-        
-    except CameraTrap.DoesNotExist:
+
+    except json.JSONDecodeError:
         return JsonResponse({
             'success': False,
-            'error': 'Camera not found'
-        }, status=404)
+            'error': 'Invalid JSON'
+        }, status=400)
     except Exception as e:
+        import traceback
+        print(f"Update camera error: {traceback.format_exc()}")
         return JsonResponse({
             'success': False,
             'error': str(e)
