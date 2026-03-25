@@ -88,7 +88,6 @@ class User(Document):
     
     # Profile
     full_name = StringField()
-    avatar_url = URLField()
     
     # Role and permissions
     role = StringField(
@@ -205,13 +204,6 @@ class CameraTrap(Document):
     battery_level = IntField(min_value=0, max_value=100)
     storage_available_gb = FloatField()
     
-    # Assignment
-    assigned_ranger = ReferenceField(User)  # Field staff responsible
-    
-    # Last activity
-    last_detection_at = DateTimeField()
-    last_sync_at = DateTimeField()
-    
     created_at = DateTimeField(default=datetime.now)
     updated_at = DateTimeField(default=datetime.now)
     
@@ -220,8 +212,8 @@ class CameraTrap(Document):
         'indexes': ['name', 'is_active', 'is_online', 'location']
     }
     
-    def to_dict(self, include_ranger=False):
-        data = {
+    def to_dict(self):
+        return {
             'id': str(self.id),
             'name': self.name,
             'location': self.location,
@@ -233,13 +225,8 @@ class CameraTrap(Document):
             'resolution': self.resolution,
             'battery_level': self.battery_level,
             'storage_available_gb': self.storage_available_gb,
-            'last_detection_at': self.last_detection_at.isoformat() if self.last_detection_at else None,
-            'last_sync_at': self.last_sync_at.isoformat() if self.last_sync_at else None,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
-        if include_ranger and self.assigned_ranger:
-            data['assigned_ranger'] = str(self.assigned_ranger.id)
-        return data
 
 
 class Detection(Document):
@@ -280,7 +267,6 @@ class Detection(Document):
     
     # Metadata
     inference_time_ms = FloatField()  # Model inference time
-    species_suspected = ReferenceField(Species)  # If known
     
     # Processing
     is_verified = BooleanField(default=False)
@@ -416,43 +402,3 @@ class ActivityLog(Document):
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 
-
-class SystemMetrics(Document):
-    """
-    System performance and operational metrics.
-    """
-    timestamp = DateTimeField(default=datetime.now)
-    
-    # Camera metrics
-    total_cameras = IntField()
-    active_cameras = IntField()
-    cameras_online = IntField()
-    
-    # Detection metrics
-    detections_today = IntField()
-    alerts_today = IntField()
-    false_positive_rate = FloatField()  # Percentage
-    
-    # System health
-    database_size_mb = FloatField()
-    avg_inference_time_ms = FloatField()
-    
-    meta = {
-        'collection': 'system_metrics',
-        'indexes': ['timestamp'],
-        'ordering': ['-timestamp']
-    }
-    
-    def to_dict(self):
-        return {
-            'id': str(self.id),
-            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
-            'total_cameras': self.total_cameras,
-            'active_cameras': self.active_cameras,
-            'cameras_online': self.cameras_online,
-            'detections_today': self.detections_today,
-            'alerts_today': self.alerts_today,
-            'false_positive_rate': self.false_positive_rate,
-            'database_size_mb': self.database_size_mb,
-            'avg_inference_time_ms': self.avg_inference_time_ms
-        }
