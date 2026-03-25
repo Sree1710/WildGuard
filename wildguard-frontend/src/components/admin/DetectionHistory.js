@@ -19,6 +19,9 @@ const DetectionHistory = () => {
     type: 'all',
     alert_level: '',
     object_type: '',
+    zone: 'all',
+    dateFrom: '',
+    dateTo: '',
   });
   const [selectedDetection, setSelectedDetection] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -30,12 +33,65 @@ const DetectionHistory = () => {
     fetchDetections();
   }, []);
 
-  const fetchDetections = async () => {
+  const fetchDetections = async (currentFilters = filters) => {
     try {
       setLoading(true);
-      const response = await api.getDetections({ limit: 50 });
+
+      // Build query params from filters
+      const params = { limit: 50 };
+
+      // Map detection type filter to backend object_type query
+      if (currentFilters.type && currentFilters.type !== 'all') {
+        if (currentFilters.type === 'Animal') {
+          // Filter for animals (exclude humans and suspicious objects)
+          params.object_type = 'animal';
+        } else if (currentFilters.type === 'Human') {
+          // Filter for human-related detections
+          params.object_type = 'human';
+        } else if (currentFilters.type === 'Suspicious') {
+          // Filter for suspicious/threat detections
+          params.alert_level = 'high';
+        }
+      }
+
+      // Add alert level filter if specified
+      if (currentFilters.alert_level) {
+        params.alert_level = currentFilters.alert_level;
+      }
+
+      // Add object type filter if specified directly
+      if (currentFilters.object_type) {
+        params.object_type = currentFilters.object_type;
+      }
+
+      const response = await api.getDetections(params);
       if (response.success) {
-        setDetections(response.data);
+        let filteredData = response.data;
+
+        // Additional client-side filtering for zone (camera location)
+        if (currentFilters.zone && currentFilters.zone !== 'all') {
+          filteredData = filteredData.filter(det =>
+            det.camera_location && det.camera_location.includes(currentFilters.zone)
+          );
+        }
+
+        // Date range filtering (client-side)
+        if (currentFilters.dateFrom) {
+          const fromDate = new Date(currentFilters.dateFrom);
+          filteredData = filteredData.filter(det =>
+            new Date(det.created_at) >= fromDate
+          );
+        }
+
+        if (currentFilters.dateTo) {
+          const toDate = new Date(currentFilters.dateTo);
+          toDate.setHours(23, 59, 59, 999); // End of day
+          filteredData = filteredData.filter(det =>
+            new Date(det.created_at) <= toDate
+          );
+        }
+
+        setDetections(filteredData);
       }
     } catch (error) {
       console.error('Failed to fetch detections:', error);
@@ -53,22 +109,23 @@ const DetectionHistory = () => {
     });
   };
 
-  // Apply filters - Client side for now (or update create fetchDetections to use filters)
+  // Apply filters - Now uses server + client-side filtering
   const handleApplyFilters = () => {
-    // Ideally this should trigger a new API call with query params
-    // For now, client-side filtering on the fetched batch
-    // Implementation pending full server-side filter support
-    fetchDetections();
+    fetchDetections(filters);
   };
 
   // Reset filters
   const handleResetFilters = () => {
-    setFilters({
+    const defaultFilters = {
       type: 'all',
       alert_level: '',
       object_type: '',
-    });
-    fetchDetections();
+      zone: 'all',
+      dateFrom: '',
+      dateTo: '',
+    };
+    setFilters(defaultFilters);
+    fetchDetections(defaultFilters);
   };
 
   // View detection details
