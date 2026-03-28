@@ -7,6 +7,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
+import ForgotPassword from './components/auth/ForgotPassword';
+import ResetPassword from './components/auth/ResetPassword';
 import HomePage from './components/HomePage';
 import Navbar from './components/shared/Navbar';
 import { AppContainer, MainContent } from './components/shared/Layout';
@@ -45,6 +47,12 @@ function App() {
             
             {/* Public Route - Signup */}
             <Route path="/signup" element={<Signup />} />
+
+            {/* Public Route - Forgot Password */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* Public Route - Reset Password */}
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Admin Routes */}
             <Route

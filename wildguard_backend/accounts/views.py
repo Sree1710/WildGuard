@@ -1,11 +1,12 @@
 """
 Accounts Views - Authentication
 ================================
-Login, signup, and JWT token management.
+Login, signup, JWT token management, and password reset.
 """
 
 import json
-from datetime import datetime
+import secrets
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -260,6 +261,210 @@ def user_profile_view(request):
             'success': False,
             'error': 'User not found'
         }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def forgot_password_view(request):
+    """
+    Request password reset - generates a reset token.
+    
+    Request body:
+    {
+        "email": "user@example.com"
+    }
+    
+    Response:
+    {
+        "success": true,
+        "message": "If an account exists with this email, a reset link has been generated.",
+        "reset_token": "..." // In production, this would be sent via email
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return JsonResponse({
+                'success': False,
+                'error': 'Email is required'
+            }, status=400)
+        
+        db = get_db()
+        user = db.users.find_one({'email': email})
+        
+        # Generate reset token regardless of whether user exists (security best practice)
+        reset_token = secrets.token_urlsafe(32)
+        token_expiry = datetime.now() + timedelta(hours=1)  # Token valid for 1 hour
+        
+        response_data = {
+            'success': True,
+            'message': 'If an account exists with this email, a reset link has been generated.'
+        }
+        
+        if user:
+            # Store reset token in database
+            db.users.update_one(
+                {'_id': user['_id']},
+                {
+                    '$set': {
+                        'reset_token': reset_token,
+                        'reset_token_expiry': token_expiry
+                    }
+                }
+            )
+            
+            # In development, return the token directly
+            # In production, this would be sent via email
+            if settings.DEBUG:
+                response_data['reset_token'] = reset_token
+                response_data['debug_info'] = {
+                    'note': 'In production, this token would be sent via email',
+                    'reset_url': f'http://localhost:3000/reset-password?token={reset_token}'
+                }
+        
+        return JsonResponse(response_data, status=200)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def reset_password_view(request):
+    """
+    Reset password using the reset token.
+    
+    Request body:
+    {
+        "token": "reset_token_here",
+        "new_password": "new_secure_password"
+    }
+    
+    Response:
+    {
+        "success": true,
+        "message": "Password has been reset successfully"
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        token = data.get('token', '').strip()
+        new_password = data.get('new_password', '')
+        
+        if not token:
+            return JsonResponse({
+                'success': False,
+                'error': 'Reset token is required'
+            }, status=400)
+        
+        if not new_password:
+            return JsonResponse({
+                'success': False,
+                'error': 'New password is required'
+            }, status=400)
+        
+        if len(new_password) < 6:
+            return JsonResponse({
+                'success': False,
+                'error': 'Password must be at least 6 characters long'
+            }, status=400)
+        
+        db = get_db()
+        user = db.users.find_one({
+            'reset_token': token,
+            'reset_token_expiry': {'$gt': datetime.now()}
+        })
+        
+        if not user:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid or expired reset token'
+            }, status=400)
+        
+        # Hash new password and update user
+        new_password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+        
+        db.users.update_one(
+            {'_id': user['_id']},
+            {
+                '$set': {
+                    'password_hash': new_password_hash,
+                    'updated_at': datetime.now()
+                },
+                '$unset': {
+                    'reset_token': '',
+                    'reset_token_expiry': ''
+                }
+            }
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Password has been reset successfully. You can now login with your new password.'
+        }, status=200)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid JSON'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def verify_reset_token_view(request):
+    """
+    Verify if a reset token is valid.
+    
+    Query params:
+    ?token=reset_token_here
+    
+    Response:
+    {
+        "success": true,
+        "valid": true
+    }
+    """
+    try:
+        token = request.GET.get('token', '').strip()
+        
+        if not token:
+            return JsonResponse({
+                'success': False,
+                'error': 'Token is required'
+            }, status=400)
+        
+        db = get_db()
+        user = db.users.find_one({
+            'reset_token': token,
+            'reset_token_expiry': {'$gt': datetime.now()}
+        })
+        
+        return JsonResponse({
+            'success': True,
+            'valid': user is not None
+        }, status=200)
+        
     except Exception as e:
         return JsonResponse({
             'success': False,

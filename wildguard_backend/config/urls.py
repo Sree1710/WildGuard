@@ -18,6 +18,9 @@ urlpatterns = [
     path('api/auth/logout/', account_views.logout_view, name='logout'),
     path('api/auth/refresh/', account_views.refresh_token_view, name='refresh'),
     path('api/auth/profile/', account_views.user_profile_view, name='profile'),
+    path('api/auth/forgot-password/', account_views.forgot_password_view, name='forgot_password'),
+    path('api/auth/reset-password/', account_views.reset_password_view, name='reset_password'),
+    path('api/auth/verify-reset-token/', account_views.verify_reset_token_view, name='verify_reset_token'),
     
     # Detection APIs
     path('api/detections/', detection_views.list_detections, name='list_detections'),

@@ -182,6 +182,29 @@ class ApiService {
     return this.request('/auth/profile/');
   }
 
+  async forgotPassword(email) {
+    return this.request('/auth/forgot-password/', {
+      method: 'POST',
+      body: { email },
+      auth: false,
+    });
+  }
+
+  async resetPassword(token, newPassword) {
+    return this.request('/auth/reset-password/', {
+      method: 'POST',
+      body: { token, new_password: newPassword },
+      auth: false,
+    });
+  }
+
+  async verifyResetToken(token) {
+    return this.request(`/auth/verify-reset-token/?token=${encodeURIComponent(token)}`, {
+      method: 'GET',
+      auth: false,
+    });
+  }
+
   // =====================
   // ADMIN ENDPOINTS
   // =====================

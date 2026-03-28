@@ -219,7 +219,7 @@ const Login = () => {
                 <Checkbox type="checkbox" id="remember" />
                 <label htmlFor="remember">Remember me</label>
               </RememberMe>
-              <ForgotLink>Forgot password?</ForgotLink>
+              <ForgotLink onClick={() => navigate('/forgot-password')}>Forgot password?</ForgotLink>
             </OptionsRow>
 
             <SubmitButton type="submit" disabled={loading}>
