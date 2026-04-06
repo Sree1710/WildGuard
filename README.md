@@ -62,7 +62,7 @@ Training experiments, datasets, and saved model weights are managed under the `m
 
 ### 4. Image Detection
 When a new image is captured, the system runs YOLOv8-based object detection:
-- Identifies objects present in the image (wildlife species, humans, vehicles)
+- Identifies objects present in the image (animals, humans, vehicles)
 - Produces bounding box coordinates for each detected object
 - Assigns a confidence score (0–1) to each detection
 - Maps detections to alert levels based on detected object type
