@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/admin/cameras/', admin_views.camera_list, name='camera_list'),
     path('api/admin/cameras/create/', admin_views.create_camera, name='create_camera'),
     path('api/admin/cameras/<str:camera_id>/', admin_views.update_camera, name='update_camera'),
+    path('api/admin/cameras/<str:camera_id>/delete/', admin_views.delete_camera, name='delete_camera'),
     path('api/admin/emergency/', admin_views.emergency_list, name='emergency_list'),
     path('api/admin/emergency/<str:alert_id>/resolve/', admin_views.resolve_emergency, name='resolve_emergency'),
     path('api/admin/system-monitoring/', admin_views.system_monitoring, name='system_monitoring'),

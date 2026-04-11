@@ -236,7 +236,7 @@ class ApiService {
   }
 
   async deleteCamera(cameraId) {
-    return this.request(`/admin/cameras/${cameraId}/`, {
+    return this.request(`/admin/cameras/${cameraId}/delete/`, {
       method: 'DELETE',
     });
   }

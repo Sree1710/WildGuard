@@ -106,12 +106,14 @@ const CameraManagement = () => {
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     try {
-      // Note: Delete API may not exist, just refresh for now
-      setCameras(cameras.filter(cam => cam.id !== currentCamera.id));
+      await api.deleteCamera(currentCamera.id);
       setIsDeleteModalOpen(false);
       setCurrentCamera(null);
+      // Refresh camera list from server
+      fetchCameras();
     } catch (err) {
       console.error('Failed to delete camera:', err);
+      setError('Failed to delete camera');
     }
   };
 

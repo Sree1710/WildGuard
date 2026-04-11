@@ -402,6 +402,89 @@ def update_camera(request, camera_id):
         }, status=500)
 
 
+@csrf_exempt
+@require_auth
+@require_role('admin')
+@require_http_methods(["DELETE"])
+def delete_camera(request, camera_id):
+    """
+    Delete a camera trap and all associated data.
+    Cascade-deletes: detections, emergency alerts, and activity logs
+    linked to this camera to prevent orphaned references.
+    """
+    try:
+        from pymongo import MongoClient
+        from bson import ObjectId
+        import certifi
+        from django.conf import settings
+
+        client = MongoClient(settings.MONGO_HOST, tlsCAFile=certifi.where())
+        db = client[settings.MONGO_DB]
+
+        # Validate camera ID
+        try:
+            obj_id = ObjectId(camera_id)
+        except:
+            client.close()
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid camera ID format'
+            }, status=400)
+
+        # Check if camera exists
+        camera = db.camera_traps.find_one({'_id': obj_id})
+        if not camera:
+            client.close()
+            return JsonResponse({
+                'success': False,
+                'error': 'Camera not found'
+            }, status=404)
+
+        # Get all detection IDs linked to this camera (needed for activity log cleanup)
+        detection_ids = [
+            det['_id'] for det in db.detections.find({'camera_trap': obj_id}, {'_id': 1})
+        ]
+
+        # Delete emergency alerts linked to this camera or its detections
+        emergency_query = {'$or': [{'camera_trap': obj_id}]}
+        if detection_ids:
+            emergency_query['$or'].append({'detection': {'$in': detection_ids}})
+        emergency_result = db.emergency_alerts.delete_many(emergency_query)
+
+        # Delete activity logs that reference these detections
+        if detection_ids:
+            detection_id_strs = [str(d) for d in detection_ids]
+            db.activity_logs.delete_many({
+                'entity_type': 'Detection',
+                'entity_id': {'$in': detection_id_strs}
+            })
+
+        # Delete all detections linked to this camera
+        detections_result = db.detections.delete_many({'camera_trap': obj_id})
+
+        # Delete the camera itself
+        db.camera_traps.delete_one({'_id': obj_id})
+
+        client.close()
+
+        return JsonResponse({
+            'success': True,
+            'message': f"Camera '{camera.get('name', '')}' deleted successfully",
+            'deleted': {
+                'detections': detections_result.deleted_count,
+                'emergency_alerts': emergency_result.deleted_count
+            }
+        }, status=200)
+
+    except Exception as e:
+        import traceback
+        print(f"Delete camera error: {traceback.format_exc()}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
+
+
 @require_auth
 @require_role('admin')
 @require_http_methods(["GET"])
