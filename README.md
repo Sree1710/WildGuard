@@ -25,11 +25,11 @@
 
 | Layer | Technologies |
 |-------|--------------|
-| **Backend** | Python 3.11+, Django 4.2, Django REST Framework, PyJWT |
-| **Database** | MongoDB Atlas, MongoEngine ODM |
-| **ML - Image** | YOLOv8 (Ultralytics), OpenCV |
-| **ML - Audio** | Random Forest (scikit-learn), librosa |
-| **Frontend** | React 18, Styled Components, React Router |
+| **Backend** | Python 3.11+, Django 4.2, Django REST Framework, PyJWT, django-cors-headers |
+| **Database** | MongoDB Atlas, MongoEngine ODM, certifi (SSL) |
+| **ML - Image** | YOLOv8 (Ultralytics), TensorFlow 2.15, OpenCV, Pillow |
+| **ML - Audio** | Random Forest (scikit-learn), librosa, soundfile |
+| **Frontend** | React 18, Styled Components, React Router, Recharts, react-icons |
 | **Reports** | ReportLab (PDF generation) |
 
 ---
@@ -129,26 +129,48 @@ It ensures data persistence, cloud-based accessibility, and supports scalability
 WildGuard MCA/
 ├── wildguard_backend/              # Django Backend
 │   ├── accounts/                   # JWT Authentication
-│   │   └── auth.py                 # JWT handler & decorators
+│   │   ├── auth.py                 # JWT handler & decorators
+│   │   └── views.py                # Login, register, password reset APIs
 │   ├── admin_module/               # Admin APIs
-│   │   └── views.py                # Dashboard, cameras, emergency
+│   │   └── views.py                # Dashboard, cameras, emergency, monitoring
 │   ├── user_module/                # User/Ranger APIs
-│   │   └── views.py                # Dashboard, reports, PDF generation
+│   │   └── views.py                # Dashboard, reports, PDF, live detection
 │   ├── detection/                  # Core detection module
-│   │   ├── models.py               # MongoDB models
-│   │   └── detection_generator.py  # Auto-detection simulator
+│   │   ├── models.py               # MongoDB models (MongoEngine)
+│   │   ├── views.py                # Detection list, detail, verify APIs
+│   │   ├── detection_generator.py  # Background auto-detection simulator
+│   │   └── apps.py                 # AppConfig (auto-starts generator)
 │   ├── ml_services/                # Production ML inference
-│   │   ├── image_detector.py       # YOLOv8 detector
-│   │   ├── audio_detector.py       # Random Forest classifier
-│   │   └── late_fusion.py          # Multimodal late fusion engine
+│   │   ├── image_detector.py       # YOLOv8 image detector
+│   │   ├── audio_detector.py       # Random Forest audio classifier
+│   │   └── late_fusion.py          # Late fusion engine with corroboration
 │   ├── ml_experiments/             # ML training & research
-│   │   ├── datasets/               # Training data
-│   │   └── trained_models/         # Saved models (yolov8*.pt)
-│   ├── config/                     # Django settings
-│   └── requirements.txt            # Python dependencies
+│   │   ├── train_image_model.py    # YOLOv8 training script
+│   │   ├── train_audio_model.py    # Random Forest training script
+│   │   ├── image_model_comparison.py   # Image model evaluation
+│   │   ├── audio_model_comparison.py   # Audio model evaluation
+│   │   ├── audio_feature_extraction.py # MFCC feature extraction
+│   │   ├── audio_feature_selection.py  # Feature selection pipeline
+│   │   ├── experiment_results.py       # Results analysis
+│   │   ├── download_datasets.py        # Dataset downloader
+│   │   ├── verify_datasets.py          # Dataset verification
+│   │   ├── datasets/                   # Training data (images + audio)
+│   │   ├── trained_models/             # Saved models
+│   │   └── results/                    # Experiment outputs
+│   ├── config/                     # Django configuration
+│   │   ├── settings.py             # MongoDB, JWT, CORS config
+│   │   ├── urls.py                 # URL routing (22 endpoints)
+│   │   └── wsgi.py                 # WSGI entry point
+│   ├── media/                      # Uploaded detection files
+│   ├── logs/                       # Application logs
+│   ├── requirements.txt            # Python dependencies
+│   ├── generate_detections.py      # Manual detection generator
+│   ├── init_sample_data.py         # Sample data initialization
+│   └── verify_dashboard_data.py    # Dashboard data verification
 │
 ├── wildguard-frontend/             # React Frontend
 │   └── src/
+│       ├── App.js                  # Main app with routing
 │       ├── components/
 │       │   ├── HomePage.js         # Landing page
 │       │   ├── admin/              # Admin pages
@@ -178,8 +200,12 @@ WildGuard MCA/
 │       │       ├── Form.js
 │       │       ├── Modal.js
 │       │       └── Table.js
-│       ├── services/api.js         # API client
-│       └── context/AuthContext.js  # Auth state
+│       ├── services/api.js         # API client (JWT, upload support)
+│       ├── context/AuthContext.js  # Auth state management
+│       ├── styles/
+│       │   ├── GlobalStyles.js     # Global styled-components
+│       │   └── theme.js            # Theme configuration
+│       └── data/mockData.js        # Mock data for development
 │
 └── README.md
 ```
@@ -241,7 +267,7 @@ npm start
 ### Image Detection (YOLOv8)
 | Property | Value |
 |----------|-------|
-| **Model** | YOLOv8 (yolov8_image_classifier.pt) |
+| **Model** | YOLOv8 (yolov8n-cls.pt) |
 | **Accuracy** | ~92% |
 | **Objects** | Elephant, Tiger, Deer, Human, Vehicle |
 
@@ -268,26 +294,47 @@ npm start
 ### Authentication
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/login/` | Login |
-| POST | `/api/auth/register/` | Register |
-| GET | `/api/auth/profile/` | Current user |
-| POST | `/api/auth/logout/` | Logout |
+| POST | `/api/auth/login/` | Login with username/password |
+| POST | `/api/auth/register/` | Register new user account |
+| POST | `/api/auth/logout/` | Logout (client-side token clear) |
+| POST | `/api/auth/refresh/` | Refresh access token |
+| GET | `/api/auth/profile/` | Get authenticated user profile |
+| POST | `/api/auth/forgot-password/` | Request password reset token |
+| POST | `/api/auth/reset-password/` | Reset password with token |
+| GET | `/api/auth/verify-reset-token/` | Verify if reset token is valid |
+
+### Detection APIs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/detections/` | List detections (filterable, paginated) |
+| GET | `/api/detections/<id>/` | Detection detail with evidence |
+| POST | `/api/detections/<id>/verify/` | Verify/mark as false positive (admin) |
 
 ### Admin APIs
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/admin/dashboard/` | System overview |
-| GET | `/api/admin/cameras/` | Camera list |
-| GET | `/api/admin/emergency/` | Emergency alerts |
-| GET | `/api/admin/system-monitoring/` | System health |
+| GET | `/api/admin/dashboard/` | System-wide statistics and trends |
+| GET | `/api/admin/cameras/` | List all camera traps |
+| POST | `/api/admin/cameras/create/` | Register new camera trap |
+| PUT | `/api/admin/cameras/<id>/` | Update camera details/status |
+| DELETE | `/api/admin/cameras/<id>/delete/` | Delete camera and cascade data |
+| GET | `/api/admin/emergency/` | List emergency alerts |
+| POST | `/api/admin/emergency/<id>/resolve/` | Resolve emergency alert |
+| GET | `/api/admin/system-monitoring/` | System health metrics |
 
 ### User APIs
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/user/dashboard/` | User dashboard |
-| GET | `/api/user/alerts/` | User alerts |
-| GET | `/api/user/reports/` | Report data |
-| GET | `/api/user/reports/pdf/` | Download PDF |
+| GET | `/api/user/dashboard/` | User dashboard with stats |
+| GET | `/api/user/alerts/` | Alerts (severity-based visibility) |
+| GET | `/api/user/activity-timeline/` | User activity audit trail |
+| GET | `/api/user/evidence/<id>/` | View detection evidence |
+| GET | `/api/user/reports/` | Report data with analytics |
+| GET | `/api/user/reports/pdf/` | Download PDF report |
+| GET | `/api/user/emergency-info/` | Emergency contacts and alerts |
+| GET | `/api/user/cameras/` | List active cameras |
+| POST | `/api/user/live-detection/` | Upload image/audio for live ML analysis |
+| GET | `/api/user/live-detections/` | List recent live detection results |
 
 ---
 
@@ -303,10 +350,11 @@ npm start
 ### User Module
 - **UserDashboard** – Personal stats, critical alerts
 - **ReportsPage** – Report generation, PDF export
-- **AlertsPage** – Alert timeline
-- **ActivityTimeline** – Detection activity
-- **EvidenceViewer** – View detection evidence
-- **EmergencyInfo** – Emergency contacts
+- **AlertsPage** – Alert timeline with severity-based visibility
+- **ActivityTimeline** – Detection activity audit trail
+- **EvidenceViewer** – View detection evidence (images, audio, fusion data)
+- **EmergencyInfo** – Emergency contacts and active alerts
+- **Live Detection Upload** – Upload field images/audio for real-time ML analysis with YOLOv8 + Random Forest + Late Fusion pipeline
 
 ### UI/UX
 - Modern design with dark hero sections
@@ -319,12 +367,30 @@ npm start
 ## 🗄️ Database (MongoDB)
 
 ### Collections
-- `users` – User accounts with roles
-- `camera_traps` – Camera devices
-- `detections` – Detection events
-- `emergency_alerts` – High-priority alerts
-- `activity_logs` – Audit trail
+| Collection | Key Fields | Purpose |
+|------------|-----------|--------|
+| `users` | username, email, password_hash, role, assigned_cameras | User accounts with role-based access (admin/user) |
+| `camera_traps` | name, location, latitude, longitude, is_active, is_online, battery_level | Camera trap devices deployed in the field |
+| `detections` | camera_trap, detection_type, detected_object, confidence, alert_level, visual_confidence, audio_confidence, fusion_confidence, fusion_method | Detection events (image, audio, or fused) |
+| `emergency_alerts` | alert_type, severity, camera_trap, detection, is_resolved, responding_ranger | High-priority alerts requiring immediate action |
+| `activity_logs` | user, action, entity_type, entity_id, details | User activity audit trail |
 
+### Embedded Documents
+- **BoundingBox** – Detection bounding box coordinates (x_min, y_min, x_max, y_max)
+- **ObjectDetection** – Detected object with confidence and bounding box
+- **AudioProbability** – Audio classification probability per class
+
+---
+
+## ⚙️ Auto Detection Generator
+
+The system includes a background detection generator (`detection/detection_generator.py`) that simulates a real camera trap network:
+
+- **Runs as a background thread** – Starts automatically when the Django server launches via `DetectionConfig.ready()`
+- **Generates realistic detections** every 2–5 minutes using actual dataset images and audio files
+- **Uses the full ML pipeline** – Produces image, audio, and fused detections via `LateFusionEngine`
+- **Auto-creates emergency alerts** for critical events (gunshot, armed person, suspicious activity)
+- **Configurable** – Controlled via `AUTO_GENERATE_DETECTIONS` environment variable (default: `True`)
 
 ---
 
