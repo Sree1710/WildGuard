@@ -10,7 +10,7 @@
 
 ## 🎯 Project Overview
 
-**WildGuard** is an AI-powered wildlife monitoring and anti-poaching system designed to protect endangered species through real-time detection and intelligent alerting.
+**WildGuard** is an ML-powered wildlife monitoring and anti-poaching system designed to protect endangered species through real-time detection and intelligent alerting.
 
 ### Key Capabilities
 - 🎥 **Visual Monitoring** – Camera traps with YOLOv8 object detection
